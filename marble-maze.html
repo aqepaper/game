@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>公園草地滾珠 · Park Lawn Marble Maze</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --grass-dark: #3d7a2e;
+    --grass-mid:  #5aa040;
+    --grass-light:#7bc95c;
+    --gold:       #e8c547;
+    --gold-dark:  #b8922a;
+    --soil:       #7b5e42;
+    --soil-light: #a07a55;
+    --wood:       #8b6340;
+    --wood-light: #b8885a;
+    --dew:        #b8d4e8;
+    --parchment:  #f5f2ec;
+    --moss:       #4a7a3a;
+    --stone:      #a09888;
+  }
+
+  body {
+    background: radial-gradient(ellipse at 60% 30%, #2d5a1e 0%, #1a3a12 60%, #0f2209 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* ─── AMBIENT PARTICLES ─── */
+  .particle-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .dust {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(232,197,71,0.3);
+    animation: floatDust linear infinite;
+  }
+
+  @keyframes floatDust {
+    0%   { transform: translateY(100vh) rotate(0deg); opacity:0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(-20px) rotate(360deg); opacity:0; }
+  }
+
+  /* ─── GAME CONTAINER ─── */
+  .game-wrap {
+    position: relative; z-index:1;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    padding: 12px;
+  }
+
+  /* ─── TOP HUD ─── */
+  .hud-top {
+    display: flex; align-items: center; gap: 12px;
+    width: 360px; justify-content: space-between;
+  }
+
+  .hud-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+    color: var(--gold); text-shadow: 0 0 12px rgba(232,197,71,0.6);
+    text-transform: uppercase;
+  }
+
+  .wood-badge {
+    background: linear-gradient(135deg, var(--wood-light), var(--wood));
+    border: 2px solid var(--gold-dark);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 14px; font-weight: 800;
+    color: #fff8e8;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
+  }
+  .wood-badge::before {
+    content: '🌿';
+    position: absolute; left: -8px; top: -6px; font-size: 12px;
+  }
+  .wood-badge::after {
+    content: '🍀';
+    position: absolute; right: -8px; bottom: -6px; font-size: 12px;
+  }
+
+  /* ─── BOARD PERSPECTIVE WRAPPER ─── */
+  .board-perspective {
+    perspective: 900px;
+    perspective-origin: 50% 40%;
+    transition: perspective-origin 0.1s ease;
+  }
+
+  .board-tilt {
+    transform-style: preserve-3d;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* ─── GRASS BOARD ─── */
+  .board {
+    width: 360px; height: 420px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 0 3px var(--wood),
+      0 0 0 6px var(--wood-light),
+      inset 0 0 40px rgba(0,0,0,0.3);
+  }
+
+  /* Grass base — layered SVG pattern */
+  .grass-base {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 120% 60% at 30% 20%, rgba(123,201,92,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 80% at 75% 70%, rgba(61,122,46,0.3) 0%, transparent 50%),
+      linear-gradient(160deg, #4a9035 0%, #3d7a2e 40%, #2d5e20 80%, #1e4415 100%);
+  }
+
+  /* Grass blades pattern */
+  .grass-blades {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        87deg,
+        transparent 0px, transparent 3px,
+        rgba(90,160,64,0.15) 3px, rgba(90,160,64,0.15) 4px
+      ),
+      repeating-linear-gradient(
+        93deg,
+        transparent 0px, transparent 5px,
+        rgba(45,94,32,0.12) 5px, rgba(45,94,32,0.12) 6px
+      );
+  }
+
+  /* Dew highlights */
+  .dew-layer {
+    position: absolute; inset: 0; pointer-events:none;
+    background:
+      radial-gradient(circle 2px at 18% 22%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 45% 15%, rgba(184,212,232,0.7) 0%, transparent 100%),
+      radial-gradient(circle 2px at 72% 28%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1px at 88% 55%, rgba(184,212,232,0.6) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 12% 68%, rgba(184,212,232,0.7) 0%, transparent 100%),
+      radial-gradient(circle 2px at 55% 78%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1px at 33% 88%, rgba(184,212,232,0.5) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 80% 82%, rgba(184,212,232,0.7) 0%, transparent 100%);
+  }
+
+  /* Sunlight dapple */
+  .sunlight {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80px 120px at 25% 10%, rgba(255,240,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 90px at 70% 20%, rgba(255,245,180,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 100px 60px at 85% 65%, rgba(255,230,120,0.1) 0%, transparent 70%),
+      radial-gradient(ellipse 40px 80px at 15% 85%, rgba(255,245,160,0.08) 0%, transparent 70%);
+    animation: dapple 6s ease-in-out infinite alternate;
+  }
+  @keyframes dapple {
+    0%  { opacity: 0.8; transform: translateX(0) scale(1); }
+    100%{ opacity: 1.0; transform: translateX(5px) scale(1.04); }
+  }
+
+  /* ─── HOLES ─── */
+  .hole {
+    position: absolute;
+    width: 36px; height: 28px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  .hole-inner {
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse 70% 60% at 45% 45%,
+      #0a0a06 0%, #1a1408 40%, #2d2010 60%, #3d2e18 80%, transparent 100%);
+    border-radius: 50% 45% 55% 40% / 40% 50% 45% 55%;
+    box-shadow:
+      inset 0 4px 8px rgba(0,0,0,0.9),
+      inset 0 -2px 4px rgba(80,60,20,0.3),
+      0 2px 6px rgba(0,0,0,0.5);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .hole-inner::before {
+    content: '';
+    position: absolute; inset: 2px;
+    border-radius: inherit;
+    background:
+      radial-gradient(ellipse 40% 30% at 30% 30%, rgba(80,60,30,0.4) 0%, transparent 60%);
+  }
+  /* Moss ring */
+  .hole-inner::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50% 45% 55% 40% / 40% 50% 45% 55%;
+    background: radial-gradient(ellipse at 50% 50%,
+      transparent 40%, rgba(58,100,40,0.6) 55%, rgba(45,80,30,0.4) 65%, transparent 75%);
+    pointer-events: none;
+  }
+  .hole.scored .hole-inner {
+    background: radial-gradient(ellipse 70% 60% at 45% 45%,
+      #1a3010 0%, #2d5020 40%, #3a6828 60%, transparent 100%);
+    box-shadow:
+      inset 0 2px 4px rgba(0,0,0,0.5),
+      0 0 12px rgba(100,200,60,0.4),
+      0 2px 6px rgba(0,0,0,0.3);
+  }
+  .hole-num {
+    position: absolute;
+    top: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.5);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ─── MAZE WALLS (pebbles & branches) ─── */
+  .wall-group { position: absolute; inset:0; pointer-events:none; }
+
+  .pebble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 35% 30%, var(--stone) 0%, #706858 50%, #504840 100%);
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(0,0,0,0.3);
+  }
+
+  .branch {
+    position: absolute;
+    background: linear-gradient(var(--angle, 90deg), #8b6840, #6b4820, #8b6840);
+    border-radius: 3px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+    transform: rotate(var(--rot, 0deg));
+    transform-origin: center;
+  }
+
+  /* ─── MARBLE ─── */
+  .marble {
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+    transition: left 0.06s ease-out, top 0.06s ease-out;
+  }
+  .marble-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%,
+        rgba(255,255,255,0.95) 0%,
+        rgba(220,235,255,0.7) 12%,
+        rgba(180,200,230,0.4) 25%,
+        transparent 40%),
+      radial-gradient(circle at 65% 70%,
+        rgba(80,120,180,0.3) 0%,
+        transparent 35%),
+      radial-gradient(circle at 50% 50%,
+        #e8eef5 0%, #c8d4e4 20%, #a0b4cc 40%, #788ca4 60%, #506070 80%, #304050 100%);
+    box-shadow:
+      0 6px 20px rgba(0,0,0,0.6),
+      0 2px 8px rgba(0,0,0,0.4),
+      inset 0 -4px 8px rgba(0,0,0,0.2);
+    animation: marbleShine 3s ease-in-out infinite;
+  }
+  /* Grass reflection in marble */
+  .marble-inner::after {
+    content:'';
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(ellipse 60% 40% at 50% 75%,
+      rgba(80,160,60,0.25) 0%, transparent 60%);
+  }
+
+  @keyframes marbleShine {
+    0%,100% { box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.2); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.15), 0 0 15px rgba(180,200,255,0.2); }
+  }
+
+  /* Marble trail */
+  .marble-trail {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(184,212,232,0.3);
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    animation: trailFade 0.5s ease-out forwards;
+    z-index: 9;
+  }
+  @keyframes trailFade {
+    0%  { opacity:0.6; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0;   transform:translate(-50%,-50%) scale(0.3); }
+  }
+
+  /* ─── SCORE POPUP ─── */
+  .score-popup {
+    position: absolute;
+    font-size: 22px; font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(232,197,71,0.8), 0 2px 4px rgba(0,0,0,0.8);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: popUp 1.2s ease-out forwards;
+    z-index: 20;
+  }
+  @keyframes popUp {
+    0%  { opacity:1; transform:translate(-50%,-50%) scale(0.5); }
+    40% { opacity:1; transform:translate(-50%,-80%) scale(1.2); }
+    100%{ opacity:0; transform:translate(-50%,-120%) scale(1); }
+  }
+
+  /* ─── DECORATIVE ELEMENTS ─── */
+  .flora {
+    position: absolute;
+    pointer-events: none;
+    font-size: var(--size, 12px);
+    opacity: 0.75;
+    animation: sway 4s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+    transform-origin: bottom center;
+  }
+  @keyframes sway {
+    0%,100%{ transform: rotate(-3deg); }
+    50%    { transform: rotate(3deg); }
+  }
+
+  /* ─── BOTTOM HUD ─── */
+  .hud-bottom {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(15,25,8,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(90,160,64,0.3);
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: 360px;
+    justify-content: space-around;
+  }
+
+  .stat-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.5); text-transform: uppercase;
+  }
+  .stat-value {
+    font-size: 22px; font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+  }
+  .stat-value.green { color: var(--grass-light); text-shadow: 0 0 8px rgba(123,201,92,0.5); }
+  .stat-value.gold  { color: var(--gold);        text-shadow: 0 0 8px rgba(232,197,71,0.5); }
+
+  .divider { width:1px; height:36px; background:rgba(255,255,255,0.15); }
+
+  /* ─── INSTRUCTION ─── */
+  .instruction {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em; text-align: center;
+  }
+
+  /* ─── WIN SCREEN ─── */
+  .win-overlay {
+    position: fixed; inset:0; z-index:100;
+    background: rgba(0,0,0,0.85);
+    display: flex; flex-direction:column;
+    align-items: center; justify-content: center; gap: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s;
+  }
+  .win-overlay.show { opacity:1; pointer-events:all; }
+  .win-title {
+    font-size: 36px; font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(232,197,71,0.8);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ transform:scale(1); }
+    50%    { transform:scale(1.05); }
+  }
+  .win-sub { font-size: 16px; color: rgba(255,255,255,0.7); }
+  .play-again {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border: none; border-radius: 30px;
+    padding: 14px 36px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: #2d1a00;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(232,197,71,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .play-again:active { transform:scale(0.96); }
+</style>
+</head>
+<body>
+
+<!-- Ambient particles -->
+<div class="particle-layer" id="particles"></div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div style="font-size:60px">🏆</div>
+  <div class="win-title">全數入洞！</div>
+  <div class="win-sub">所有 14 個兔子洞都已找到</div>
+  <button class="play-again" onclick="resetGame()">再玩一次 🌿</button>
+</div>
+
+<div class="game-wrap">
+
+  <!-- TOP HUD -->
+  <div class="hud-top">
+    <div class="hud-title">🌿 Park Lawn</div>
+    <div class="wood-badge" id="progressBadge">0 / 14</div>
+    <div class="hud-title">Marble Maze</div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-perspective" id="boardPerspective">
+    <div class="board-tilt" id="boardTilt">
+      <div class="board" id="board">
+        <div class="grass-base"></div>
+        <div class="grass-blades"></div>
+        <div class="dew-layer"></div>
+        <div class="sunlight"></div>
+
+        <!-- Decorative flora -->
+        <div class="flora" style="left:8%;top:12%;--size:14px;--delay:0s">🌸</div>
+        <div class="flora" style="left:88%;top:18%;--size:11px;--delay:1s">🍄</div>
+        <div class="flora" style="left:5%;top:55%;--size:13px;--delay:2s">🌼</div>
+        <div class="flora" style="left:90%;top:72%;--size:12px;--delay:0.5s">🌿</div>
+        <div class="flora" style="left:48%;top:92%;--size:10px;--delay:1.5s">🍀</div>
+        <div class="flora" style="left:78%;top:88%;--size:14px;--delay:3s">🌺</div>
+        <div class="flora" style="left:22%;top:82%;--size:10px;--delay:2.5s">🌾</div>
+        <div class="flora" style="left:62%;top:8%;--size:11px;--delay:0.8s">🐛</div>
+
+        <!-- Walls -->
+        <div class="wall-group" id="wallGroup"></div>
+
+        <!-- Holes container -->
+        <div id="holesContainer"></div>
+
+        <!-- Marble -->
+        <div class="marble" id="marble">
+          <div class="marble-inner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM HUD -->
+  <div class="hud-bottom">
+    <div class="stat-item">
+      <div class="stat-label">已入洞</div>
+      <div class="stat-value gold" id="statScored">0</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+      <div class="stat-label">剩餘</div>
+      <div class="stat-value green" id="statRemain">14</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+      <div class="stat-label">移動</div>
+      <div class="stat-value" id="statMoves">0</div>
+    </div>
+  </div>
+
+  <div class="instruction">傾斜或拖曳控制滾珠 · 找到所有 14 個兔子洞</div>
+</div>
+
+<script>
+// ─── CONFIG ───
+const BOARD_W = 360, BOARD_H = 420;
+const MARBLE_R = 14;
+const HOLE_W = 36, HOLE_H = 28;
+const CAPTURE_DIST = 18;
+const FRICTION = 0.978;
+const GRAVITY_SCALE = 0.38;
+
+// 14 hole positions (% of board)
+const HOLE_POSITIONS = [
+  {x:15, y:12}, {x:50, y:8},  {x:82, y:14},
+  {x:25, y:30}, {x:72, y:28}, {x:12, y:48},
+  {x:88, y:46}, {x:45, y:50}, {x:60, y:65},
+  {x:18, y:70}, {x:78, y:72}, {x:35, y:82},
+  {x:65, y:86}, {x:50, y:95}
+];
+
+// Pebble walls
+const PEBBLES = [
+  // Left corridor
+  {x:30,y:20,w:6,h:5},{x:33,y:24,w:5,h:5},{x:28,y:40,w:7,h:6},
+  // Right side
+  {x:60,y:35,w:6,h:5},{x:63,y:40,w:5,h:5},{x:57,y:55,w:6,h:6},
+  // Middle
+  {x:40,y:60,w:7,h:5},{x:44,y:65,w:5,h:6},{x:38,y:70,w:6,h:5},
+  // Top scatter
+  {x:20,y:8,w:5,h:4},{x:70,y:8,w:6,h:4},{x:55,y:22,w:5,h:5},
+  // Bottom
+  {x:22,y:90,w:6,h:5},{x:80,y:85,w:5,h:5},
+];
+
+const BRANCHES = [
+  {x:35,y:15,w:40,h:5,rot:-12},
+  {x:55,y:42,w:35,h:4,rot:8},
+  {x:20,y:60,w:30,h:4,rot:-5},
+  {x:62,y:78,w:38,h:5,rot:15},
+  {x:10,y:32,w:25,h:4,rot:80},
+  {x:85,y:30,w:22,h:4,rot:75},
+];
+
+// ─── STATE ───
+let marble = { x: BOARD_W/2, y: BOARD_H/2, vx:0, vy:0 };
+let tilt = { x:0, y:0 };
+let scored = 0;
+let moves = 0;
+let holes = [];
+let animId;
+let isDragging = false;
+let lastPos = null;
+let trailInterval;
+
+// ─── INIT ───
+function initGame() {
+  marble = { x: BOARD_W/2, y: BOARD_H/2 - 30, vx:0, vy:0 };
+  scored = 0; moves = 0;
+  tilt = {x:0, y:0};
+  updateHUD();
+
+  // Build holes
+  const container = document.getElementById('holesContainer');
+  container.innerHTML = '';
+  holes = HOLE_POSITIONS.map((pos, i) => {
+    const el = document.createElement('div');
+    el.className = 'hole';
+    const px = pos.x / 100 * BOARD_W;
+    const py = pos.y / 100 * BOARD_H;
+    el.style.left = px + 'px';
+    el.style.top  = py + 'px';
+    el.innerHTML = `<div class="hole-inner"></div><div class="hole-num">${i+1}</div>`;
+    container.appendChild(el);
+    return { x: px, y: py, el, scored: false };
+  });
+
+  // Build walls
+  const wg = document.getElementById('wallGroup');
+  wg.innerHTML = '';
+  PEBBLES.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'pebble';
+    el.style.left   = p.x+'%';
+    el.style.top    = p.y+'%';
+    el.style.width  = p.w+'px';
+    el.style.height = p.h+'px';
+    wg.appendChild(el);
+  });
+  BRANCHES.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'branch';
+    el.style.left   = b.x+'%';
+    el.style.top    = b.y+'%';
+    el.style.width  = b.w+'px';
+    el.style.height = b.h+'px';
+    el.style.setProperty('--rot', b.rot+'deg');
+    el.style.transform = `rotate(${b.rot}deg)`;
+    wg.appendChild(el);
+  });
+
+  updateMarblePos();
+  document.getElementById('winOverlay').classList.remove('show');
+
+  if (animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+// ─── PHYSICS LOOP ───
+function loop() {
+  // Apply tilt gravity
+  marble.vx += tilt.x * GRAVITY_SCALE;
+  marble.vy += tilt.y * GRAVITY_SCALE;
+
+  // Friction
+  marble.vx *= FRICTION;
+  marble.vy *= FRICTION;
+
+  // Clamp speed
+  const speed = Math.sqrt(marble.vx**2 + marble.vy**2);
+  if (speed > 12) { marble.vx = marble.vx/speed*12; marble.vy = marble.vy/speed*12; }
+
+  // Move
+  marble.x += marble.vx;
+  marble.y += marble.vy;
+
+  // Wall bounce
+  if (marble.x < MARBLE_R)        { marble.x = MARBLE_R;        marble.vx = Math.abs(marble.vx)*0.5; }
+  if (marble.x > BOARD_W-MARBLE_R){ marble.x = BOARD_W-MARBLE_R; marble.vx = -Math.abs(marble.vx)*0.5; }
+  if (marble.y < MARBLE_R)        { marble.y = MARBLE_R;        marble.vy = Math.abs(marble.vy)*0.5; }
+  if (marble.y > BOARD_H-MARBLE_R){ marble.y = BOARD_H-MARBLE_R; marble.vy = -Math.abs(marble.vy)*0.5; }
+
+  // Check holes
+  holes.forEach(h => {
+    if (h.scored) return;
+    const dx = marble.x - h.x, dy = marble.y - h.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < CAPTURE_DIST) {
+      h.scored = true;
+      h.el.classList.add('scored');
+      scored++;
+      moves++;
+      updateHUD();
+      spawnScorePopup(h.x, h.y);
+      // Snap marble to hole center briefly then respawn
+      marble.x = h.x; marble.y = h.y;
+      marble.vx = 0; marble.vy = 0;
+      setTimeout(() => respawnMarble(), 600);
+      if (scored >= 14) { setTimeout(showWin, 800); }
+    }
+  });
+
+  updateMarblePos();
+
+  // Trail
+  if (speed > 2) spawnTrail();
+
+  animId = requestAnimationFrame(loop);
+}
+
+function respawnMarble() {
+  marble.x = BOARD_W/2 + (Math.random()-0.5)*80;
+  marble.y = BOARD_H/2 + (Math.random()-0.5)*60;
+  marble.vx = (Math.random()-0.5)*2;
+  marble.vy = (Math.random()-0.5)*2;
+}
+
+function updateMarblePos() {
+  const el = document.getElementById('marble');
+  el.style.left = marble.x + 'px';
+  el.style.top  = marble.y + 'px';
+}
+
+// ─── HUD ───
+function updateHUD() {
+  document.getElementById('progressBadge').textContent = scored + ' / 14';
+  document.getElementById('statScored').textContent = scored;
+  document.getElementById('statRemain').textContent = 14 - scored;
+  document.getElementById('statMoves').textContent = moves;
+}
+
+// ─── TRAIL ───
+let trailThrottle = 0;
+function spawnTrail() {
+  const now = Date.now();
+  if (now - trailThrottle < 40) return;
+  trailThrottle = now;
+  const board = document.getElementById('board');
+  const t = document.createElement('div');
+  t.className = 'marble-trail';
+  const sz = 8 + Math.random()*6;
+  t.style.width = sz+'px'; t.style.height = sz+'px';
+  t.style.left = marble.x+'px'; t.style.top = marble.y+'px';
+  board.appendChild(t);
+  setTimeout(() => t.remove(), 500);
+}
+
+// ─── SCORE POPUP ───
+function spawnScorePopup(x, y) {
+  const board = document.getElementById('board');
+  const p = document.createElement('div');
+  p.className = 'score-popup';
+  p.textContent = '✓ 入洞！';
+  p.style.left = x+'px'; p.style.top = y+'px';
+  board.appendChild(p);
+  setTimeout(() => p.remove(), 1200);
+}
+
+// ─── WIN ───
+function showWin() {
+  cancelAnimationFrame(animId);
+  document.getElementById('winOverlay').classList.add('show');
+}
+function resetGame() { initGame(); }
+
+// ─── BOARD TILT (mouse/touch) ───
+const boardPerspective = document.getElementById('boardPerspective');
+const boardTilt = document.getElementById('boardTilt');
+const board = document.getElementById('board');
+
+let pointerInside = false;
+let lastTiltX = 0, lastTiltY = 0;
+
+board.addEventListener('mousemove', e => {
+  const rect = board.getBoundingClientRect();
+  const cx = rect.left + BOARD_W/2, cy = rect.top + BOARD_H/2;
+  const dx = (e.clientX - cx) / (BOARD_W/2);
+  const dy = (e.clientY - cy) / (BOARD_H/2);
+  // Perspective tilt
+  lastTiltX = dy * 10; lastTiltY = -dx * 10;
+  boardTilt.style.transform = `rotateX(${lastTiltX}deg) rotateY(${lastTiltY}deg)`;
+  // Physics gravity
+  tilt.x = dx * 1.2;
+  tilt.y = dy * 1.2;
+  moves++;
+  updateHUD();
+});
+
+board.addEventListener('mouseleave', () => {
+  // Ease back to flat
+  boardTilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  tilt.x = 0; tilt.y = 0;
+});
+
+// Touch support
+let touchStart = null;
+board.addEventListener('touchstart', e => {
+  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  e.preventDefault();
+}, {passive:false});
+
+board.addEventListener('touchmove', e => {
+  if (!touchStart) return;
+  const rect = board.getBoundingClientRect();
+  const cx = rect.left + BOARD_W/2, cy = rect.top + BOARD_H/2;
+  const dx = (e.touches[0].clientX - cx) / (BOARD_W/2);
+  const dy = (e.touches[0].clientY - cy) / (BOARD_H/2);
+  lastTiltX = dy * 12; lastTiltY = -dx * 12;
+  boardTilt.style.transform = `rotateX(${lastTiltX}deg) rotateY(${lastTiltY}deg)`;
+  tilt.x = dx * 1.5;
+  tilt.y = dy * 1.5;
+  e.preventDefault();
+}, {passive:false});
+
+board.addEventListener('touchend', () => {
+  boardTilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  tilt.x *= 0.3; tilt.y *= 0.3;
+});
+
+// Gyroscope (mobile)
+let gyroEnabled = false;
+
+function startGyro() {
+  window.addEventListener('deviceorientation', e => {
+    if (e.gamma === null) return;
+    gyroEnabled = true;
+    const gx = Math.max(-4, Math.min(4, e.gamma / 9));   // left/right
+    const gy = Math.max(-4, Math.min(4, (e.beta - 40) / 9)); // fwd/back
+    tilt.x = gx;
+    tilt.y = gy;
+    boardTilt.style.transform =
+      `rotateX(${gy * 3}deg) rotateY(${-gx * 3}deg)`;
+    // Hide gyro button once working
+    const btn = document.getElementById('gyroBtn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// iOS 13+ requires explicit permission
+if (typeof DeviceOrientationEvent !== 'undefined' &&
+    typeof DeviceOrientationEvent.requestPermission === 'function') {
+  // Show a button — iOS won't grant permission without a user gesture
+  const btn = document.createElement('button');
+  btn.id = 'gyroBtn';
+  btn.textContent = '📱 啟用陀螺儀';
+  Object.assign(btn.style, {
+    position:'fixed', bottom:'90px', left:'50%',
+    transform:'translateX(-50%)',
+    background:'linear-gradient(135deg,#e8c547,#b8922a)',
+    border:'none', borderRadius:'24px',
+    padding:'10px 24px',
+    fontFamily:"'Nunito',sans-serif",
+    fontSize:'15px', fontWeight:'800',
+    color:'#2d1a00', cursor:'pointer',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.4)',
+    zIndex:'200'
+  });
+  btn.addEventListener('click', () => {
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') { startGyro(); btn.remove(); }
+        else { btn.textContent = '❌ 權限被拒'; }
+      })
+      .catch(() => { btn.textContent = '❌ 無法取得權限'; });
+  });
+  document.body.appendChild(btn);
+} else if (window.DeviceOrientationEvent) {
+  // Android / non-iOS — no permission needed
+  startGyro();
+}
+
+// ─── AMBIENT PARTICLES ───
+(function spawnParticles() {
+  const layer = document.getElementById('particles');
+  for (let i=0; i<18; i++) {
+    const d = document.createElement('div');
+    d.className = 'dust';
+    const sz = 2 + Math.random()*4;
+    d.style.width = sz+'px'; d.style.height = sz+'px';
+    d.style.left  = Math.random()*100+'vw';
+    d.style.animationDuration = (8+Math.random()*12)+'s';
+    d.style.animationDelay   = (-Math.random()*15)+'s';
+    layer.appendChild(d);
+  }
+})();
+
+// ─── START ───
+initGame();
+</script>
+</body>
+</html>

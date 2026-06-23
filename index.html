@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>第55期 學長/副學長/課務 講習報名</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+
+:root {
+  --ink:     #1a1a2e;
+  --gold:    #c9a84c;
+  --gold-lt: #f5e9c4;
+  --cream:   #fdf8f0;
+  --sage:    #4a7c6f;
+  --rose:    #c0392b;
+  --amber:   #e67e22;
+  --border:  #e0d5c0;
+  --shadow:  0 4px 24px rgba(26,26,46,0.09);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--cream);
+  min-height: 100vh;
+  padding: 28px 16px 56px;
+}
+.wrap { width: 100%; max-width: 440px; margin: 0 auto; }
+
+.header { text-align: center; margin-bottom: 26px; }
+.header-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.header-logo {
+  position: absolute;
+  left: calc(50% - 180px);
+  top: 2px;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.header-text { display: flex; flex-direction: column; align-items: center; }
+.header h1 { font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.header h2 { font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 400; color: var(--gold); letter-spacing: 1px; }
+.header-rule { width: 40px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 10px auto 0; }
+
+.progress { display: flex; align-items: center; margin-bottom: 24px; }
+.prog-node { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.prog-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #bbb; transition: all 0.3s ease; }
+.prog-circle.active { border-color: var(--gold); background: var(--gold); color: white; box-shadow: 0 0 0 4px var(--gold-lt); }
+.prog-circle.done { border-color: var(--sage); background: var(--sage); color: white; }
+.prog-label { font-size: 13px; color: #bbb; white-space: nowrap; }
+.prog-label.active { color: var(--gold); }
+.prog-line { flex: 1; height: 2px; background: var(--border); margin: 0 4px 14px; transition: background 0.3s; }
+.prog-line.done { background: var(--sage); }
+
+.card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 26px 22px; box-shadow: var(--shadow); animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.card-title { font-family: 'Noto Serif TC', serif; font-size: 17px; color: var(--ink); margin-bottom: 5px; }
+.card-desc { font-size: 16px; color: #999; margin-bottom: 20px; line-height: 1.7; }
+
+.field-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; font-family: 'Noto Sans TC', sans-serif; color: var(--ink); background: #fafafa; outline: none; margin-bottom: 16px; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+.field-input::placeholder { color: #ccc; }
+.field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.14); background: white; }
+textarea.field-input { resize: vertical; min-height: 80px; font-family: 'Noto Sans TC', sans-serif; }
+
+.radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.radio-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #fafafa; }
+.radio-item.checked { border-color: var(--gold); background: #fffbf0; }
+.radio-item.warn { border-color: var(--rose); background: #fdecea; }
+.radio-item.warn input[type=radio] { accent-color: var(--rose); }
+.radio-item input[type=radio] { width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; }
+.radio-item-text { font-size: 16px; color: var(--ink); }
+.radio-item-sub { font-size: 16px; color: #aaa; margin-top: 2px; }
+
+.btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+.btn-primary { background: linear-gradient(135deg, #d4a843, #a8822a); color: white; box-shadow: 0 4px 14px rgba(168,130,42,0.32); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(168,130,42,0.4); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; color: #888; border: 1.5px solid var(--border); margin-top: 10px; }
+.btn-outline:hover { background: #f6f6f6; color: var(--ink); }
+
+.info-box { background: linear-gradient(135deg,#f8f4ea,#fdf9f2); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+.info-row { display: flex; gap: 10px; padding: 5px 0; font-size: 16px; border-bottom: 1px solid rgba(224,213,192,0.5); }
+.info-row:last-child { border-bottom: none; }
+.info-key { color: #aaa; min-width: 76px; flex-shrink: 0; }
+.info-value { color: var(--ink); font-weight: 500; }
+
+.err-msg { color: var(--rose); font-size: 16px; margin-top: -10px; margin-bottom: 14px; padding-left: 2px; }
+.err-msg:empty { display: none; }
+
+.fuzzy-hint { font-size: 14px; color: #999; margin-bottom: 10px; }
+.candidate { border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.candidate:hover { border-color: var(--gold); background: #fffbf0; transform: translateX(4px); }
+.candidate-name { font-weight: 500; color: var(--ink); font-size: 15px; }
+.candidate-meta { font-size: 13px; color: #bbb; margin-top: 2px; }
+
+.section-sep { font-size: 16px; letter-spacing: 1px; color: var(--gold); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--gold-lt); }
+
+.spinner-wrap { display: flex; align-items: center; gap: 10px; justify-content: center; padding: 14px 0; color: #aaa; font-size: 15px; }
+.spinner { width: 20px; height: 20px; border: 2px solid #e8e8e8; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.status-center { text-align: center; padding: 8px 0 6px; }
+.status-emoji { font-size: 46px; margin-bottom: 12px; }
+.status-title { font-family: 'Noto Serif TC', serif; font-size: 19px; margin-bottom: 8px; }
+.status-body { font-size: 14px; color: #888; line-height: 1.8; }
+.color-sage  { color: var(--sage); }
+.color-amber { color: var(--amber); }
+.color-gray  { color: #666; }
+
+.hidden { display: none !important; }
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.note-warn { background:#fff8e6; border:1px solid #f0d080; border-left:4px solid #e6a817; color:#7a5800; border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:16px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-inner">
+      <img src="data:image/png;base64,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" class="header-logo" alt="logo">
+      <div class="header-text">
+        <h1>第55期 學長/副學長/課務 講習</h1>
+        <h2 id="eventNameDisplay">場次報名</h2>
+      </div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="progress">
+    <div class="prog-node"><div class="prog-circle active" id="pc1">1</div><div class="prog-label active" id="pl1">登入</div></div>
+    <div class="prog-line" id="pln1"></div>
+    <div class="prog-node"><div class="prog-circle" id="pc2">2</div><div class="prog-label" id="pl2">確認</div></div>
+    <div class="prog-line" id="pln2"></div>
+    <div class="prog-node"><div class="prog-circle" id="pc3">3</div><div class="prog-label" id="pl3">填寫</div></div>
+    <div class="prog-line" id="pln3"></div>
+    <div class="prog-node"><div class="prog-circle" id="pc4">4</div><div class="prog-label" id="pl4">完成</div></div>
+  </div>
+
+  <!-- Step1: 登入 -->
+  <div class="card" id="step1">
+    <div class="card-title" style="text-align:center">🔑 身份登入</div>
+    <div class="card-desc" style="text-align:center">請輸入姓名或學員編號</div>
+    <input class="field-input" id="queryInput" type="text" placeholder="姓名或學員編號" maxlength="30"
+      style="font-size:18px;text-align:center;" onkeydown="if(event.key==='Enter')doLookup()">
+    <div class="err-msg" id="err1"></div>
+    <div class="spinner-wrap hidden" id="spin1"><div class="spinner"></div>查詢中，請稍候⋯</div>
+    <button class="btn btn-primary" id="btnLookup" onclick="doLookup()">🔍 查詢</button>
+  </div>
+
+  <!-- StepFuzzy: 模糊候選 -->
+  <div class="card hidden" id="stepFuzzy">
+    <div class="card-title">🔎 您是指這位嗎？</div>
+    <div class="fuzzy-hint">找不到完全符合的結果，請點選確認：</div>
+    <div id="candidateList"></div>
+    <hr class="divider">
+    <button class="btn btn-outline" onclick="backToStep1()">← 重新輸入</button>
+  </div>
+
+  <!-- Step2: 確認身份 -->
+  <div class="card hidden" id="step2">
+    <div class="card-title">👤 確認您的資料</div>
+    <div class="card-desc">請確認以下是您本人的資料</div>
+    <div class="info-box">
+      <div class="info-row"><span class="info-key">學員編號</span><span class="info-value" id="s_id"></span></div>
+      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="s_name"></span></div>
+      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="s_dharma"></span></div>
+      <div class="info-row"><span class="info-key">班組別</span><span class="info-value" id="s_group"></span></div>
+    </div>
+    <button class="btn btn-primary" onclick="goStep3()">✅ 是本人，繼續報名</button>
+    <button class="btn btn-outline" onclick="backToStep1()">❌ 不是我，重新輸入</button>
+  </div>
+
+  <!-- Step3: 選場次＋參加狀態 -->
+  <div class="card hidden" id="step3">
+    <div class="card-title">📋 選擇場次並回覆出席</div>
+    <div class="info-box" style="margin-bottom:16px">
+      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="s3_name"></span></div>
+      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="s3_dharma"></span></div>
+      <div class="info-row"><span class="info-key">班別</span><span class="info-value" id="s3_group"></span></div>
+    </div>
+
+    <div class="section-sep">場次（三場只能擇一）<span style="color:var(--rose);margin-left:4px;">*</span></div>
+    <div class="radio-group" id="sessionGroup"></div>
+
+    <div class="section-sep">出席狀態<span style="color:var(--rose);margin-left:4px;">*</span></div>
+    <div class="radio-group">
+      <label class="radio-item" id="attendItem">
+        <input type="radio" name="attending" value="參加" onchange="onAttendChange()">
+        <div class="radio-item-text">參加</div>
+      </label>
+      <label class="radio-item" id="notAttendItem">
+        <input type="radio" name="attending" value="不參加" onchange="onAttendChange()">
+        <div class="radio-item-text">不參加</div>
+      </label>
+    </div>
+
+    <div id="noteWrap" class="hidden">
+      <div class="section-sep">無法參加原因<span style="color:var(--rose);margin-left:4px;">*</span></div>
+      <textarea class="field-input" id="note" placeholder="請說明無法參加的原因"></textarea>
+    </div>
+
+    <div class="err-msg" id="err3"></div>
+    <div class="spinner-wrap hidden" id="spin3"><div class="spinner"></div>送出中，請稍候⋯</div>
+    <button class="btn btn-primary" id="btnSubmit" onclick="doSubmit()">送出　✓</button>
+  </div>
+
+  <!-- 已報名提示 -->
+  <div class="card hidden" id="stepDup">
+    <div class="status-center">
+      <div class="status-emoji">⚠️</div>
+      <div class="status-title color-amber">您已完成報名</div>
+    </div>
+    <div class="info-box" style="margin-top:16px">
+      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="dup_name"></span></div>
+      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="dup_dharma"></span></div>
+      <div class="info-row"><span class="info-key">班組別</span><span class="info-value" id="dup_group"></span></div>
+      <div class="info-row"><span class="info-key">已選場次</span><span class="info-value" id="dup_session"></span></div>
+      <div class="info-row"><span class="info-key">出席狀態</span><span class="info-value" id="dup_status"></span></div>
+      <div class="info-row hidden" id="dup_note_row"><span class="info-key">原因</span><span class="info-value" id="dup_note"></span></div>
+      <div class="info-row"><span class="info-key">登記時間</span><span class="info-value" id="dup_time"></span></div>
+    </div>
+    <div id="dupActions">
+      <div class="status-body" style="text-align:center">如資料正確無需修改，直接關閉頁面即可。<br>如需修改，請按「修改報名」。</div>
+      <button class="btn btn-primary" style="margin-top:18px" onclick="reRegister()">修改報名</button>
+      <button class="btn btn-outline" onclick="backToStep1()">資料正確，不需修改</button>
+    </div>
+    <div id="dupClosedNotice" class="hidden">
+      <div class="note-warn" style="margin-top:16px">報名已截止，目前僅能查詢，無法修改。</div>
+      <button class="btn btn-outline" onclick="backToStep1()">← 返回首頁</button>
+    </div>
+  </div>
+
+  <!-- 系統關閉 -->
+  <div class="card hidden" id="stepClosed">
+    <div class="status-center">
+      <div class="status-emoji">🔒</div>
+      <div class="status-title color-gray">報名系統暫停開放</div>
+      <div class="status-body" style="margin-top:8px">目前報名系統尚未開放，<br>請聯絡主辦單位取得更多資訊。</div>
+    </div>
+  </div>
+
+  <!-- 完成 -->
+  <div class="card hidden" id="step4">
+    <div class="status-center">
+      <div class="status-emoji">🎉</div>
+      <div class="status-title color-sage">送出成功！</div>
+      <div class="status-body" id="successMsg" style="margin-top:10px;white-space:pre-line;font-size:16px"></div>
+      <div class="status-body" style="margin-top:6px;font-size:14px">以最後一次送出為準。</div>
+    </div>
+    <button class="btn btn-outline" style="margin-top:22px" onclick="resetAll()">← 返回首頁</button>
+  </div>
+
+</div>
+
+<script>
+let member = {};
+let pastDeadlineGlobal = false;
+
+function applyConfig(cfg) {
+  if (!cfg) return;
+  pastDeadlineGlobal = !!cfg.pastDeadline;
+  renderSessionOptions(cfg.sessions);
+}
+
+function renderSessionOptions(sessions) {
+  const wrap = document.getElementById('sessionGroup');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  (sessions || []).forEach(function(s, idx) {
+    if (!s) return;
+    const parts = String(s).split('｜');
+    const title = parts[0] || s;
+    const sub   = parts[1] || '';
+    const label = document.createElement('label');
+    label.className = 'radio-item';
+    label.innerHTML = `
+      <input type="radio" name="sessionIndex" value="${idx+1}" onchange="onSessionChange()">
+      <div>
+        <div class="radio-item-text">${title}</div>
+        ${sub ? `<div class="radio-item-sub">${sub}</div>` : ''}
+      </div>`;
+    wrap.appendChild(label);
+  });
+}
+
+function onSessionChange() {
+  document.querySelectorAll('#sessionGroup .radio-item').forEach(el => {
+    el.classList.toggle('checked', el.querySelector('input').checked);
+  });
+}
+
+function onAttendChange() {
+  const val = getRadioVal('attending');
+  document.getElementById('attendItem').classList.toggle('checked', val === '參加');
+  document.getElementById('notAttendItem').classList.toggle('checked', false);
+  document.getElementById('notAttendItem').classList.toggle('warn', val === '不參加');
+  document.getElementById('noteWrap').classList.toggle('hidden', val !== '不參加');
+}
+
+const STEPS = ['step1','stepFuzzy','step2','step3','step4','stepDup','stepClosed'];
+function show(id) {
+  STEPS.forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function setProgress(active) {
+  for (let i = 1; i <= 4; i++) {
+    const c = document.getElementById('pc' + i);
+    const l = document.getElementById('pl' + i);
+    c.classList.remove('active','done');
+    l.classList.remove('active');
+    if      (i < active)  { c.classList.add('done');   c.innerHTML = '✓'; }
+    else if (i === active) { c.classList.add('active'); c.innerHTML = i; l.classList.add('active'); }
+    else                  { c.innerHTML = i; }
+    if (i < 4) document.getElementById('pln' + i).classList.toggle('done', i < active);
+  }
+}
+
+function backToStep1() {
+  member = {};
+  document.getElementById('queryInput').value = '';
+  document.getElementById('err1').innerText = '';
+  document.getElementById('err3').innerText = '';
+  show('step1'); setProgress(1);
+}
+
+async function doLookup() {
+  const q = document.getElementById('queryInput').value.trim();
+  document.getElementById('err1').innerText = '';
+  if (!q) { document.getElementById('err1').innerText = '請輸入姓名或學員編號'; return; }
+
+  const looksLikeId = /^[A-Za-z0-9]+$/.test(q) && q.length >= 9;
+  if (looksLikeId) {
+    const isZen = /^\d{9}$/.test(q);
+    const isDC  = /^\d{3}(DSA|DSB|5MA|5MB)\d{4}$/i.test(q);
+    if (!isZen && !isDC) {
+      document.getElementById('err1').innerText = '學員編號格式錯誤';
+      return;
+    }
+  }
+
+  setLoading('spin1', 'btnLookup', true);
+  try {
+    const r = await gas('lookupMember', q);
+    handleLookupResult(r);
+  } catch (e) {
+    document.getElementById('err1').innerText = '查詢失敗，請稍後再試';
+  } finally {
+    setLoading('spin1', 'btnLookup', false);
+  }
+}
+
+function handleLookupResult(r) {
+  if (!r) { document.getElementById('err1').innerText = '查詢回傳空值'; return; }
+  if (r.systemClosed) { show('stepClosed'); setProgress(1); return; }
+  if (r.config) applyConfig(r.config);
+  if (r.invalidId) { document.getElementById('err1').innerText = '學員編號格式錯誤，請確認後重試'; return; }
+  if (!r.found && r.fuzzy) { renderCandidates(r.candidates); show('stepFuzzy'); setProgress(1); return; }
+  if (!r.found) { document.getElementById('err1').innerText = '查無此姓名或學員編號，請確認後重試'; return; }
+  if (r.duplicate) { showDuplicate(r); return; }
+  fillStep2(r);
+}
+
+function renderCandidates(candidates) {
+  const wrap = document.getElementById('candidateList');
+  wrap.innerHTML = '';
+  (candidates || []).forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'candidate';
+    div.innerHTML = `<div class="candidate-name">${c.name}　<span style="color:#888;font-size:13px">${c.dharmaName||''}</span></div><div class="candidate-meta">班組別：${c.group}　學員編號：${c.studentId}</div>`;
+    div.onclick = () => selectCandidate(c);
+    wrap.appendChild(div);
+  });
+}
+
+async function selectCandidate(c) {
+  const wrap = document.getElementById('candidateList');
+  wrap.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>確認中，請稍候⋯</div>';
+  try {
+    const r = await gas('confirmFuzzyMember', c);
+    if (r.duplicate) { showDuplicate(r); return; }
+    fillStep2(r);
+  } catch (e) {
+    document.getElementById('err1').innerText = '確認失敗，請重試';
+    show('step1'); setProgress(1);
+  }
+}
+
+function fillStep2(r) {
+  member = r;
+  document.getElementById('s_id').innerText     = r.studentId;
+  document.getElementById('s_name').innerText   = r.name;
+  document.getElementById('s_dharma').innerText = r.dharmaName || '—';
+  document.getElementById('s_group').innerText  = r.group;
+  show('step2'); setProgress(2);
+}
+
+function goStep3() {
+  document.getElementById('s3_name').innerText   = member.name || '';
+  document.getElementById('s3_dharma').innerText = member.dharmaName || '—';
+  document.getElementById('s3_group').innerText  = member.group || '';
+
+  if (member.config && member.config.sessions) renderSessionOptions(member.config.sessions);
+
+  document.querySelectorAll('input[name=sessionIndex]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[name=attending]').forEach(r => r.checked = false);
+  document.getElementById('attendItem').classList.remove('checked');
+  document.getElementById('notAttendItem').classList.remove('checked');
+  document.getElementById('notAttendItem').classList.remove('warn');
+  document.getElementById('noteWrap').classList.add('hidden');
+  document.getElementById('note').value = '';
+  document.getElementById('err3').innerText = '';
+  document.querySelectorAll('#sessionGroup .radio-item').forEach(el => el.classList.remove('checked'));
+
+  if (member.override && member.existing) {
+    setRadio('sessionIndex', String(member.existing.sessionIndex));
+    onSessionChange();
+    setRadio('attending', member.existing.status);
+    onAttendChange();
+    document.getElementById('note').value = member.existing.note || '';
+  }
+
+  show('step3'); setProgress(3);
+}
+
+function setRadio(name, val) {
+  const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+  if (el) el.checked = true;
+}
+function getRadioVal(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+function showDuplicate(r) {
+  member = r;
+  document.getElementById('dup_name').innerText   = r.name || '';
+  document.getElementById('dup_dharma').innerText = r.dharmaName || '—';
+  document.getElementById('dup_group').innerText  = r.group || '';
+
+  const ex = r.existing || {};
+  const sessions = (r.config && r.config.sessions) || [];
+  document.getElementById('dup_session').innerText = sessions[ex.sessionIndex-1] || ('場次' + ex.sessionIndex);
+  document.getElementById('dup_status').innerText  = ex.status || '';
+  document.getElementById('dup_time').innerText    = ex.time || '';
+
+  const noteRow = document.getElementById('dup_note_row');
+  if (ex.status === '不參加' && ex.note) {
+    noteRow.classList.remove('hidden');
+    document.getElementById('dup_note').innerText = ex.note;
+  } else {
+    noteRow.classList.add('hidden');
+  }
+
+  const pastDeadline = r.config && r.config.pastDeadline;
+  document.getElementById('dupActions').classList.toggle('hidden', !!pastDeadline);
+  document.getElementById('dupClosedNotice').classList.toggle('hidden', !pastDeadline);
+
+  show('stepDup'); setProgress(2);
+}
+
+function reRegister() {
+  member.override = true;
+  goStep3();
+}
+
+async function doSubmit() {
+  document.getElementById('err3').innerText = '';
+
+  const sessionIndex = getRadioVal('sessionIndex');
+  const attending     = getRadioVal('attending');
+  const note           = document.getElementById('note').value.trim();
+
+  if (!sessionIndex) { showErr('err3', '請選擇場次'); return; }
+  if (!attending)     { showErr('err3', '請選擇出席狀態'); return; }
+  if (attending === '不參加' && !note) { showErr('err3', '請填寫無法參加的原因'); return; }
+
+  setLoading('spin3', 'btnSubmit', true);
+
+  const data = {
+    studentId    : member.studentId  || '',
+    name         : member.name       || '',
+    dharmaName   : member.dharmaName || '',
+    group        : member.group      || '',
+    gender       : member.gender     || '',
+    sessionIndex : sessionIndex,
+    attending    : attending,
+    note         : attending === '不參加' ? note : ''
+  };
+
+  try {
+    const r = await gas('submitRegistration', data);
+    if (r.success) {
+      const sessions = (member.config && member.config.sessions) || [];
+      const sessionName = sessions[sessionIndex-1] || ('場次' + sessionIndex);
+      document.getElementById('successMsg').innerText =
+        `${member.name}　${member.dharmaName||''}\n場次：${sessionName}\n狀態：${attending}` +
+        (attending === '不參加' ? `\n原因：${note}` : '');
+      show('step4'); setProgress(4);
+    } else {
+      const reasonMap = {
+        closed: '報名系統未開放',
+        deadline_passed: '報名已截止，無法修改',
+        missing_data: '資料不完整',
+        invalid_session: '場次選擇有誤',
+        invalid_status: '出席狀態有誤',
+        missing_note: '請填寫無法參加的原因'
+      };
+      showErr('err3', reasonMap[r.reason] || ('送出失敗：' + (r.reason||'unknown')));
+    }
+  } catch (e) {
+    showErr('err3', '送出失敗，請稍後再試');
+  } finally {
+    setLoading('spin3', 'btnSubmit', false);
+  }
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = msg || '';
+}
+function setLoading(spinId, btnId, on) {
+  document.getElementById(spinId).classList.toggle('hidden', !on);
+  if (btnId) document.getElementById(btnId).disabled = on;
+}
+function gas(funcName, ...args) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      [funcName](...args);
+  });
+}
+
+(async function initConfig() {
+  try {
+    const cfg = await gas('getConfig');
+    applyConfig(cfg);
+    if (cfg.eventName) document.title = cfg.eventName;
+  } catch (e) { /* 靜默失敗，顯示預設值 */ }
+})();
+
+function resetAll() {
+  member = {};
+  document.getElementById('queryInput').value = '';
+  document.getElementById('err1').innerText = '';
+  document.getElementById('err3').innerText = '';
+  show('step1'); setProgress(1);
+}
+</script>
+</body>
+</html>

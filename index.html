@@ -2,558 +2,823 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>第55期 學長/副學長/課務 講習報名</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>公園草地滾珠 · Park Lawn Marble Maze</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
 
-:root {
-  --ink:     #1a1a2e;
-  --gold:    #c9a84c;
-  --gold-lt: #f5e9c4;
-  --cream:   #fdf8f0;
-  --sage:    #4a7c6f;
-  --rose:    #c0392b;
-  --amber:   #e67e22;
-  --border:  #e0d5c0;
-  --shadow:  0 4px 24px rgba(26,26,46,0.09);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Noto Sans TC', sans-serif;
-  background: var(--cream);
-  min-height: 100vh;
-  padding: 28px 16px 56px;
-}
-.wrap { width: 100%; max-width: 440px; margin: 0 auto; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-.header { text-align: center; margin-bottom: 26px; }
-.header-inner {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-.header-logo {
-  position: absolute;
-  left: calc(50% - 180px);
-  top: 2px;
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-}
-.header-text { display: flex; flex-direction: column; align-items: center; }
-.header h1 { font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
-.header h2 { font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 400; color: var(--gold); letter-spacing: 1px; }
-.header-rule { width: 40px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 10px auto 0; }
+  :root {
+    --grass-dark: #3d7a2e;
+    --grass-mid:  #5aa040;
+    --grass-light:#7bc95c;
+    --gold:       #e8c547;
+    --gold-dark:  #b8922a;
+    --soil:       #7b5e42;
+    --soil-light: #a07a55;
+    --wood:       #8b6340;
+    --wood-light: #b8885a;
+    --dew:        #b8d4e8;
+    --parchment:  #f5f2ec;
+    --moss:       #4a7a3a;
+    --stone:      #a09888;
+  }
 
-.progress { display: flex; align-items: center; margin-bottom: 24px; }
-.prog-node { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-.prog-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #bbb; transition: all 0.3s ease; }
-.prog-circle.active { border-color: var(--gold); background: var(--gold); color: white; box-shadow: 0 0 0 4px var(--gold-lt); }
-.prog-circle.done { border-color: var(--sage); background: var(--sage); color: white; }
-.prog-label { font-size: 13px; color: #bbb; white-space: nowrap; }
-.prog-label.active { color: var(--gold); }
-.prog-line { flex: 1; height: 2px; background: var(--border); margin: 0 4px 14px; transition: background 0.3s; }
-.prog-line.done { background: var(--sage); }
+  body {
+    background: radial-gradient(ellipse at 60% 30%, #2d5a1e 0%, #1a3a12 60%, #0f2209 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
 
-.card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 26px 22px; box-shadow: var(--shadow); animation: fadeUp 0.3s ease; }
-@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.card-title { font-family: 'Noto Serif TC', serif; font-size: 17px; color: var(--ink); margin-bottom: 5px; }
-.card-desc { font-size: 16px; color: #999; margin-bottom: 20px; line-height: 1.7; }
+  /* ─── AMBIENT PARTICLES ─── */
+  .particle-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .dust {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(232,197,71,0.3);
+    animation: floatDust linear infinite;
+  }
 
-.field-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; font-family: 'Noto Sans TC', sans-serif; color: var(--ink); background: #fafafa; outline: none; margin-bottom: 16px; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
-.field-input::placeholder { color: #ccc; }
-.field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.14); background: white; }
-textarea.field-input { resize: vertical; min-height: 80px; font-family: 'Noto Sans TC', sans-serif; }
+  @keyframes floatDust {
+    0%   { transform: translateY(100vh) rotate(0deg); opacity:0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(-20px) rotate(360deg); opacity:0; }
+  }
 
-.radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
-.radio-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #fafafa; }
-.radio-item.checked { border-color: var(--gold); background: #fffbf0; }
-.radio-item.warn { border-color: var(--rose); background: #fdecea; }
-.radio-item.warn input[type=radio] { accent-color: var(--rose); }
-.radio-item input[type=radio] { width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; }
-.radio-item-text { font-size: 16px; color: var(--ink); }
-.radio-item-sub { font-size: 16px; color: #aaa; margin-top: 2px; }
+  /* ─── GAME CONTAINER ─── */
+  .game-wrap {
+    position: relative; z-index:1;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    padding: 12px;
+  }
 
-.btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
-.btn-primary { background: linear-gradient(135deg, #d4a843, #a8822a); color: white; box-shadow: 0 4px 14px rgba(168,130,42,0.32); }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(168,130,42,0.4); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.btn-outline { background: transparent; color: #888; border: 1.5px solid var(--border); margin-top: 10px; }
-.btn-outline:hover { background: #f6f6f6; color: var(--ink); }
+  /* ─── TOP HUD ─── */
+  .hud-top {
+    display: flex; align-items: center; gap: 12px;
+    width: 360px; justify-content: space-between;
+  }
 
-.info-box { background: linear-gradient(135deg,#f8f4ea,#fdf9f2); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
-.info-row { display: flex; gap: 10px; padding: 5px 0; font-size: 16px; border-bottom: 1px solid rgba(224,213,192,0.5); }
-.info-row:last-child { border-bottom: none; }
-.info-key { color: #aaa; min-width: 76px; flex-shrink: 0; }
-.info-value { color: var(--ink); font-weight: 500; }
+  .hud-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+    color: var(--gold); text-shadow: 0 0 12px rgba(232,197,71,0.6);
+    text-transform: uppercase;
+  }
 
-.err-msg { color: var(--rose); font-size: 16px; margin-top: -10px; margin-bottom: 14px; padding-left: 2px; }
-.err-msg:empty { display: none; }
+  .wood-badge {
+    background: linear-gradient(135deg, var(--wood-light), var(--wood));
+    border: 2px solid var(--gold-dark);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 14px; font-weight: 800;
+    color: #fff8e8;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
+  }
+  .wood-badge::before {
+    content: '🌿';
+    position: absolute; left: -8px; top: -6px; font-size: 12px;
+  }
+  .wood-badge::after {
+    content: '🍀';
+    position: absolute; right: -8px; bottom: -6px; font-size: 12px;
+  }
 
-.fuzzy-hint { font-size: 14px; color: #999; margin-bottom: 10px; }
-.candidate { border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
-.candidate:hover { border-color: var(--gold); background: #fffbf0; transform: translateX(4px); }
-.candidate-name { font-weight: 500; color: var(--ink); font-size: 15px; }
-.candidate-meta { font-size: 13px; color: #bbb; margin-top: 2px; }
+  /* ─── BOARD PERSPECTIVE WRAPPER ─── */
+  .board-perspective {
+    perspective: 900px;
+    perspective-origin: 50% 40%;
+    transition: perspective-origin 0.1s ease;
+  }
 
-.section-sep { font-size: 16px; letter-spacing: 1px; color: var(--gold); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--gold-lt); }
+  .board-tilt {
+    transform-style: preserve-3d;
+    transition: transform 0.08s ease-out;
+  }
 
-.spinner-wrap { display: flex; align-items: center; gap: 10px; justify-content: center; padding: 14px 0; color: #aaa; font-size: 15px; }
-.spinner { width: 20px; height: 20px; border: 2px solid #e8e8e8; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-@keyframes spin { to { transform: rotate(360deg); } }
+  /* ─── GRASS BOARD ─── */
+  .board {
+    width: 360px; height: 420px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 0 3px var(--wood),
+      0 0 0 6px var(--wood-light),
+      inset 0 0 40px rgba(0,0,0,0.3);
+  }
 
-.status-center { text-align: center; padding: 8px 0 6px; }
-.status-emoji { font-size: 46px; margin-bottom: 12px; }
-.status-title { font-family: 'Noto Serif TC', serif; font-size: 19px; margin-bottom: 8px; }
-.status-body { font-size: 14px; color: #888; line-height: 1.8; }
-.color-sage  { color: var(--sage); }
-.color-amber { color: var(--amber); }
-.color-gray  { color: #666; }
+  /* Grass base — layered SVG pattern */
+  .grass-base {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 120% 60% at 30% 20%, rgba(123,201,92,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 80% at 75% 70%, rgba(61,122,46,0.3) 0%, transparent 50%),
+      linear-gradient(160deg, #4a9035 0%, #3d7a2e 40%, #2d5e20 80%, #1e4415 100%);
+  }
 
-.hidden { display: none !important; }
-hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-.note-warn { background:#fff8e6; border:1px solid #f0d080; border-left:4px solid #e6a817; color:#7a5800; border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:16px; line-height:1.6; }
+  /* Grass blades pattern */
+  .grass-blades {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        87deg,
+        transparent 0px, transparent 3px,
+        rgba(90,160,64,0.15) 3px, rgba(90,160,64,0.15) 4px
+      ),
+      repeating-linear-gradient(
+        93deg,
+        transparent 0px, transparent 5px,
+        rgba(45,94,32,0.12) 5px, rgba(45,94,32,0.12) 6px
+      );
+  }
+
+  /* Dew highlights */
+  .dew-layer {
+    position: absolute; inset: 0; pointer-events:none;
+    background:
+      radial-gradient(circle 2px at 18% 22%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 45% 15%, rgba(184,212,232,0.7) 0%, transparent 100%),
+      radial-gradient(circle 2px at 72% 28%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1px at 88% 55%, rgba(184,212,232,0.6) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 12% 68%, rgba(184,212,232,0.7) 0%, transparent 100%),
+      radial-gradient(circle 2px at 55% 78%, rgba(184,212,232,0.8) 0%, transparent 100%),
+      radial-gradient(circle 1px at 33% 88%, rgba(184,212,232,0.5) 0%, transparent 100%),
+      radial-gradient(circle 1.5px at 80% 82%, rgba(184,212,232,0.7) 0%, transparent 100%);
+  }
+
+  /* Sunlight dapple */
+  .sunlight {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80px 120px at 25% 10%, rgba(255,240,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 90px at 70% 20%, rgba(255,245,180,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 100px 60px at 85% 65%, rgba(255,230,120,0.1) 0%, transparent 70%),
+      radial-gradient(ellipse 40px 80px at 15% 85%, rgba(255,245,160,0.08) 0%, transparent 70%);
+    animation: dapple 6s ease-in-out infinite alternate;
+  }
+  @keyframes dapple {
+    0%  { opacity: 0.8; transform: translateX(0) scale(1); }
+    100%{ opacity: 1.0; transform: translateX(5px) scale(1.04); }
+  }
+
+  /* ─── HOLES ─── */
+  .hole {
+    position: absolute;
+    width: 36px; height: 28px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  .hole-inner {
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse 70% 60% at 45% 45%,
+      #0a0a06 0%, #1a1408 40%, #2d2010 60%, #3d2e18 80%, transparent 100%);
+    border-radius: 50% 45% 55% 40% / 40% 50% 45% 55%;
+    box-shadow:
+      inset 0 4px 8px rgba(0,0,0,0.9),
+      inset 0 -2px 4px rgba(80,60,20,0.3),
+      0 2px 6px rgba(0,0,0,0.5);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .hole-inner::before {
+    content: '';
+    position: absolute; inset: 2px;
+    border-radius: inherit;
+    background:
+      radial-gradient(ellipse 40% 30% at 30% 30%, rgba(80,60,30,0.4) 0%, transparent 60%);
+  }
+  /* Moss ring */
+  .hole-inner::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50% 45% 55% 40% / 40% 50% 45% 55%;
+    background: radial-gradient(ellipse at 50% 50%,
+      transparent 40%, rgba(58,100,40,0.6) 55%, rgba(45,80,30,0.4) 65%, transparent 75%);
+    pointer-events: none;
+  }
+  .hole.scored .hole-inner {
+    background: radial-gradient(ellipse 70% 60% at 45% 45%,
+      #1a3010 0%, #2d5020 40%, #3a6828 60%, transparent 100%);
+    box-shadow:
+      inset 0 2px 4px rgba(0,0,0,0.5),
+      0 0 12px rgba(100,200,60,0.4),
+      0 2px 6px rgba(0,0,0,0.3);
+  }
+  .hole-num {
+    position: absolute;
+    top: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.5);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ─── MAZE WALLS (pebbles & branches) ─── */
+  .wall-group { position: absolute; inset:0; pointer-events:none; }
+
+  .pebble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 35% 30%, var(--stone) 0%, #706858 50%, #504840 100%);
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(0,0,0,0.3);
+  }
+
+  .branch {
+    position: absolute;
+    background: linear-gradient(var(--angle, 90deg), #8b6840, #6b4820, #8b6840);
+    border-radius: 3px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+    transform: rotate(var(--rot, 0deg));
+    transform-origin: center;
+  }
+
+  /* ─── MARBLE ─── */
+  .marble {
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+    transition: left 0.06s ease-out, top 0.06s ease-out;
+  }
+  .marble-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%,
+        rgba(255,255,255,0.95) 0%,
+        rgba(220,235,255,0.7) 12%,
+        rgba(180,200,230,0.4) 25%,
+        transparent 40%),
+      radial-gradient(circle at 65% 70%,
+        rgba(80,120,180,0.3) 0%,
+        transparent 35%),
+      radial-gradient(circle at 50% 50%,
+        #e8eef5 0%, #c8d4e4 20%, #a0b4cc 40%, #788ca4 60%, #506070 80%, #304050 100%);
+    box-shadow:
+      0 6px 20px rgba(0,0,0,0.6),
+      0 2px 8px rgba(0,0,0,0.4),
+      inset 0 -4px 8px rgba(0,0,0,0.2);
+    animation: marbleShine 3s ease-in-out infinite;
+  }
+  /* Grass reflection in marble */
+  .marble-inner::after {
+    content:'';
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(ellipse 60% 40% at 50% 75%,
+      rgba(80,160,60,0.25) 0%, transparent 60%);
+  }
+
+  @keyframes marbleShine {
+    0%,100% { box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.2); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.15), 0 0 15px rgba(180,200,255,0.2); }
+  }
+
+  /* Marble trail */
+  .marble-trail {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(184,212,232,0.3);
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    animation: trailFade 0.5s ease-out forwards;
+    z-index: 9;
+  }
+  @keyframes trailFade {
+    0%  { opacity:0.6; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0;   transform:translate(-50%,-50%) scale(0.3); }
+  }
+
+  /* ─── SCORE POPUP ─── */
+  .score-popup {
+    position: absolute;
+    font-size: 22px; font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(232,197,71,0.8), 0 2px 4px rgba(0,0,0,0.8);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: popUp 1.2s ease-out forwards;
+    z-index: 20;
+  }
+  @keyframes popUp {
+    0%  { opacity:1; transform:translate(-50%,-50%) scale(0.5); }
+    40% { opacity:1; transform:translate(-50%,-80%) scale(1.2); }
+    100%{ opacity:0; transform:translate(-50%,-120%) scale(1); }
+  }
+
+  /* ─── DECORATIVE ELEMENTS ─── */
+  .flora {
+    position: absolute;
+    pointer-events: none;
+    font-size: var(--size, 12px);
+    opacity: 0.75;
+    animation: sway 4s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+    transform-origin: bottom center;
+  }
+  @keyframes sway {
+    0%,100%{ transform: rotate(-3deg); }
+    50%    { transform: rotate(3deg); }
+  }
+
+  /* ─── BOTTOM HUD ─── */
+  .hud-bottom {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(15,25,8,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(90,160,64,0.3);
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: 360px;
+    justify-content: space-around;
+  }
+
+  .stat-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.5); text-transform: uppercase;
+  }
+  .stat-value {
+    font-size: 22px; font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+  }
+  .stat-value.green { color: var(--grass-light); text-shadow: 0 0 8px rgba(123,201,92,0.5); }
+  .stat-value.gold  { color: var(--gold);        text-shadow: 0 0 8px rgba(232,197,71,0.5); }
+
+  .divider { width:1px; height:36px; background:rgba(255,255,255,0.15); }
+
+  /* ─── INSTRUCTION ─── */
+  .instruction {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em; text-align: center;
+  }
+
+  /* ─── WIN SCREEN ─── */
+  .win-overlay {
+    position: fixed; inset:0; z-index:100;
+    background: rgba(0,0,0,0.85);
+    display: flex; flex-direction:column;
+    align-items: center; justify-content: center; gap: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s;
+  }
+  .win-overlay.show { opacity:1; pointer-events:all; }
+  .win-title {
+    font-size: 36px; font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(232,197,71,0.8);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ transform:scale(1); }
+    50%    { transform:scale(1.05); }
+  }
+  .win-sub { font-size: 16px; color: rgba(255,255,255,0.7); }
+  .play-again {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border: none; border-radius: 30px;
+    padding: 14px 36px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: #2d1a00;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(232,197,71,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .play-again:active { transform:scale(0.96); }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="header">
-    <div class="header-inner">
-      <img src="data:image/png;base64,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" class="header-logo" alt="logo">
-      <div class="header-text">
-        <h1>第55期 學長/副學長/課務 講習</h1>
-        <h2 id="eventNameDisplay">場次報名</h2>
+<!-- Ambient particles -->
+<div class="particle-layer" id="particles"></div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div style="font-size:60px">🏆</div>
+  <div class="win-title">全數入洞！</div>
+  <div class="win-sub">所有 14 個兔子洞都已找到</div>
+  <button class="play-again" onclick="resetGame()">再玩一次 🌿</button>
+</div>
+
+<div class="game-wrap">
+
+  <!-- TOP HUD -->
+  <div class="hud-top">
+    <div class="hud-title">🌿 Park Lawn</div>
+    <div class="wood-badge" id="progressBadge">0 / 14</div>
+    <div class="hud-title">Marble Maze</div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-perspective" id="boardPerspective">
+    <div class="board-tilt" id="boardTilt">
+      <div class="board" id="board">
+        <div class="grass-base"></div>
+        <div class="grass-blades"></div>
+        <div class="dew-layer"></div>
+        <div class="sunlight"></div>
+
+        <!-- Decorative flora -->
+        <div class="flora" style="left:8%;top:12%;--size:14px;--delay:0s">🌸</div>
+        <div class="flora" style="left:88%;top:18%;--size:11px;--delay:1s">🍄</div>
+        <div class="flora" style="left:5%;top:55%;--size:13px;--delay:2s">🌼</div>
+        <div class="flora" style="left:90%;top:72%;--size:12px;--delay:0.5s">🌿</div>
+        <div class="flora" style="left:48%;top:92%;--size:10px;--delay:1.5s">🍀</div>
+        <div class="flora" style="left:78%;top:88%;--size:14px;--delay:3s">🌺</div>
+        <div class="flora" style="left:22%;top:82%;--size:10px;--delay:2.5s">🌾</div>
+        <div class="flora" style="left:62%;top:8%;--size:11px;--delay:0.8s">🐛</div>
+
+        <!-- Walls -->
+        <div class="wall-group" id="wallGroup"></div>
+
+        <!-- Holes container -->
+        <div id="holesContainer"></div>
+
+        <!-- Marble -->
+        <div class="marble" id="marble">
+          <div class="marble-inner"></div>
+        </div>
       </div>
     </div>
-    <div class="header-rule"></div>
   </div>
 
-  <div class="progress">
-    <div class="prog-node"><div class="prog-circle active" id="pc1">1</div><div class="prog-label active" id="pl1">登入</div></div>
-    <div class="prog-line" id="pln1"></div>
-    <div class="prog-node"><div class="prog-circle" id="pc2">2</div><div class="prog-label" id="pl2">確認</div></div>
-    <div class="prog-line" id="pln2"></div>
-    <div class="prog-node"><div class="prog-circle" id="pc3">3</div><div class="prog-label" id="pl3">填寫</div></div>
-    <div class="prog-line" id="pln3"></div>
-    <div class="prog-node"><div class="prog-circle" id="pc4">4</div><div class="prog-label" id="pl4">完成</div></div>
-  </div>
-
-  <!-- Step1: 登入 -->
-  <div class="card" id="step1">
-    <div class="card-title" style="text-align:center">🔑 身份登入</div>
-    <div class="card-desc" style="text-align:center">請輸入姓名或學員編號</div>
-    <input class="field-input" id="queryInput" type="text" placeholder="姓名或學員編號" maxlength="30"
-      style="font-size:18px;text-align:center;" onkeydown="if(event.key==='Enter')doLookup()">
-    <div class="err-msg" id="err1"></div>
-    <div class="spinner-wrap hidden" id="spin1"><div class="spinner"></div>查詢中，請稍候⋯</div>
-    <button class="btn btn-primary" id="btnLookup" onclick="doLookup()">🔍 查詢</button>
-  </div>
-
-  <!-- StepFuzzy: 模糊候選 -->
-  <div class="card hidden" id="stepFuzzy">
-    <div class="card-title">🔎 您是指這位嗎？</div>
-    <div class="fuzzy-hint">找不到完全符合的結果，請點選確認：</div>
-    <div id="candidateList"></div>
-    <hr class="divider">
-    <button class="btn btn-outline" onclick="backToStep1()">← 重新輸入</button>
-  </div>
-
-  <!-- Step2: 確認身份 -->
-  <div class="card hidden" id="step2">
-    <div class="card-title">👤 確認您的資料</div>
-    <div class="card-desc">請確認以下是您本人的資料</div>
-    <div class="info-box">
-      <div class="info-row"><span class="info-key">學員編號</span><span class="info-value" id="s_id"></span></div>
-      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="s_name"></span></div>
-      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="s_dharma"></span></div>
-      <div class="info-row"><span class="info-key">班組別</span><span class="info-value" id="s_group"></span></div>
+  <!-- BOTTOM HUD -->
+  <div class="hud-bottom">
+    <div class="stat-item">
+      <div class="stat-label">已入洞</div>
+      <div class="stat-value gold" id="statScored">0</div>
     </div>
-    <button class="btn btn-primary" onclick="goStep3()">✅ 是本人，繼續報名</button>
-    <button class="btn btn-outline" onclick="backToStep1()">❌ 不是我，重新輸入</button>
-  </div>
-
-  <!-- Step3: 選場次＋參加狀態 -->
-  <div class="card hidden" id="step3">
-    <div class="card-title">📋 選擇場次並回覆出席</div>
-    <div class="info-box" style="margin-bottom:16px">
-      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="s3_name"></span></div>
-      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="s3_dharma"></span></div>
-      <div class="info-row"><span class="info-key">班別</span><span class="info-value" id="s3_group"></span></div>
+    <div class="divider"></div>
+    <div class="stat-item">
+      <div class="stat-label">剩餘</div>
+      <div class="stat-value green" id="statRemain">14</div>
     </div>
-
-    <div class="section-sep">場次（三場只能擇一）<span style="color:var(--rose);margin-left:4px;">*</span></div>
-    <div class="radio-group" id="sessionGroup"></div>
-
-    <div class="section-sep">出席狀態<span style="color:var(--rose);margin-left:4px;">*</span></div>
-    <div class="radio-group">
-      <label class="radio-item" id="attendItem">
-        <input type="radio" name="attending" value="參加" onchange="onAttendChange()">
-        <div class="radio-item-text">參加</div>
-      </label>
-      <label class="radio-item" id="notAttendItem">
-        <input type="radio" name="attending" value="不參加" onchange="onAttendChange()">
-        <div class="radio-item-text">不參加</div>
-      </label>
-    </div>
-
-    <div id="noteWrap" class="hidden">
-      <div class="section-sep">無法參加原因<span style="color:var(--rose);margin-left:4px;">*</span></div>
-      <textarea class="field-input" id="note" placeholder="請說明無法參加的原因"></textarea>
-    </div>
-
-    <div class="err-msg" id="err3"></div>
-    <div class="spinner-wrap hidden" id="spin3"><div class="spinner"></div>送出中，請稍候⋯</div>
-    <button class="btn btn-primary" id="btnSubmit" onclick="doSubmit()">送出　✓</button>
-  </div>
-
-  <!-- 已報名提示 -->
-  <div class="card hidden" id="stepDup">
-    <div class="status-center">
-      <div class="status-emoji">⚠️</div>
-      <div class="status-title color-amber">您已完成報名</div>
-    </div>
-    <div class="info-box" style="margin-top:16px">
-      <div class="info-row"><span class="info-key">姓名</span><span class="info-value" id="dup_name"></span></div>
-      <div class="info-row"><span class="info-key">法名</span><span class="info-value" id="dup_dharma"></span></div>
-      <div class="info-row"><span class="info-key">班組別</span><span class="info-value" id="dup_group"></span></div>
-      <div class="info-row"><span class="info-key">已選場次</span><span class="info-value" id="dup_session"></span></div>
-      <div class="info-row"><span class="info-key">出席狀態</span><span class="info-value" id="dup_status"></span></div>
-      <div class="info-row hidden" id="dup_note_row"><span class="info-key">原因</span><span class="info-value" id="dup_note"></span></div>
-      <div class="info-row"><span class="info-key">登記時間</span><span class="info-value" id="dup_time"></span></div>
-    </div>
-    <div id="dupActions">
-      <div class="status-body" style="text-align:center">如資料正確無需修改，直接關閉頁面即可。<br>如需修改，請按「修改報名」。</div>
-      <button class="btn btn-primary" style="margin-top:18px" onclick="reRegister()">修改報名</button>
-      <button class="btn btn-outline" onclick="backToStep1()">資料正確，不需修改</button>
-    </div>
-    <div id="dupClosedNotice" class="hidden">
-      <div class="note-warn" style="margin-top:16px">報名已截止，目前僅能查詢，無法修改。</div>
-      <button class="btn btn-outline" onclick="backToStep1()">← 返回首頁</button>
+    <div class="divider"></div>
+    <div class="stat-item">
+      <div class="stat-label">移動</div>
+      <div class="stat-value" id="statMoves">0</div>
     </div>
   </div>
 
-  <!-- 系統關閉 -->
-  <div class="card hidden" id="stepClosed">
-    <div class="status-center">
-      <div class="status-emoji">🔒</div>
-      <div class="status-title color-gray">報名系統暫停開放</div>
-      <div class="status-body" style="margin-top:8px">目前報名系統尚未開放，<br>請聯絡主辦單位取得更多資訊。</div>
-    </div>
-  </div>
-
-  <!-- 完成 -->
-  <div class="card hidden" id="step4">
-    <div class="status-center">
-      <div class="status-emoji">🎉</div>
-      <div class="status-title color-sage">送出成功！</div>
-      <div class="status-body" id="successMsg" style="margin-top:10px;white-space:pre-line;font-size:16px"></div>
-      <div class="status-body" style="margin-top:6px;font-size:14px">以最後一次送出為準。</div>
-    </div>
-    <button class="btn btn-outline" style="margin-top:22px" onclick="resetAll()">← 返回首頁</button>
-  </div>
-
+  <div class="instruction">傾斜或拖曳控制滾珠 · 找到所有 14 個兔子洞</div>
 </div>
 
 <script>
-let member = {};
-let pastDeadlineGlobal = false;
+// ─── CONFIG ───
+const BOARD_W = 360, BOARD_H = 420;
+const MARBLE_R = 14;
+const HOLE_W = 36, HOLE_H = 28;
+const CAPTURE_DIST = 18;
+const FRICTION = 0.978;
+const GRAVITY_SCALE = 0.38;
 
-function applyConfig(cfg) {
-  if (!cfg) return;
-  pastDeadlineGlobal = !!cfg.pastDeadline;
-  renderSessionOptions(cfg.sessions);
-}
+// 14 hole positions (% of board)
+const HOLE_POSITIONS = [
+  {x:15, y:12}, {x:50, y:8},  {x:82, y:14},
+  {x:25, y:30}, {x:72, y:28}, {x:12, y:48},
+  {x:88, y:46}, {x:45, y:50}, {x:60, y:65},
+  {x:18, y:70}, {x:78, y:72}, {x:35, y:82},
+  {x:65, y:86}, {x:50, y:95}
+];
 
-function renderSessionOptions(sessions) {
-  const wrap = document.getElementById('sessionGroup');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  (sessions || []).forEach(function(s, idx) {
-    if (!s) return;
-    const parts = String(s).split('｜');
-    const title = parts[0] || s;
-    const sub   = parts[1] || '';
-    const label = document.createElement('label');
-    label.className = 'radio-item';
-    label.innerHTML = `
-      <input type="radio" name="sessionIndex" value="${idx+1}" onchange="onSessionChange()">
-      <div>
-        <div class="radio-item-text">${title}</div>
-        ${sub ? `<div class="radio-item-sub">${sub}</div>` : ''}
-      </div>`;
-    wrap.appendChild(label);
+// Pebble walls
+const PEBBLES = [
+  // Left corridor
+  {x:30,y:20,w:6,h:5},{x:33,y:24,w:5,h:5},{x:28,y:40,w:7,h:6},
+  // Right side
+  {x:60,y:35,w:6,h:5},{x:63,y:40,w:5,h:5},{x:57,y:55,w:6,h:6},
+  // Middle
+  {x:40,y:60,w:7,h:5},{x:44,y:65,w:5,h:6},{x:38,y:70,w:6,h:5},
+  // Top scatter
+  {x:20,y:8,w:5,h:4},{x:70,y:8,w:6,h:4},{x:55,y:22,w:5,h:5},
+  // Bottom
+  {x:22,y:90,w:6,h:5},{x:80,y:85,w:5,h:5},
+];
+
+const BRANCHES = [
+  {x:35,y:15,w:40,h:5,rot:-12},
+  {x:55,y:42,w:35,h:4,rot:8},
+  {x:20,y:60,w:30,h:4,rot:-5},
+  {x:62,y:78,w:38,h:5,rot:15},
+  {x:10,y:32,w:25,h:4,rot:80},
+  {x:85,y:30,w:22,h:4,rot:75},
+];
+
+// ─── STATE ───
+let marble = { x: BOARD_W/2, y: BOARD_H/2, vx:0, vy:0 };
+let tilt = { x:0, y:0 };
+let scored = 0;
+let moves = 0;
+let holes = [];
+let animId;
+let isDragging = false;
+let lastPos = null;
+let trailInterval;
+
+// ─── INIT ───
+function initGame() {
+  marble = { x: BOARD_W/2, y: BOARD_H/2 - 30, vx:0, vy:0 };
+  scored = 0; moves = 0;
+  tilt = {x:0, y:0};
+  updateHUD();
+
+  // Build holes
+  const container = document.getElementById('holesContainer');
+  container.innerHTML = '';
+  holes = HOLE_POSITIONS.map((pos, i) => {
+    const el = document.createElement('div');
+    el.className = 'hole';
+    const px = pos.x / 100 * BOARD_W;
+    const py = pos.y / 100 * BOARD_H;
+    el.style.left = px + 'px';
+    el.style.top  = py + 'px';
+    el.innerHTML = `<div class="hole-inner"></div><div class="hole-num">${i+1}</div>`;
+    container.appendChild(el);
+    return { x: px, y: py, el, scored: false };
   });
-}
 
-function onSessionChange() {
-  document.querySelectorAll('#sessionGroup .radio-item').forEach(el => {
-    el.classList.toggle('checked', el.querySelector('input').checked);
+  // Build walls
+  const wg = document.getElementById('wallGroup');
+  wg.innerHTML = '';
+  PEBBLES.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'pebble';
+    el.style.left   = p.x+'%';
+    el.style.top    = p.y+'%';
+    el.style.width  = p.w+'px';
+    el.style.height = p.h+'px';
+    wg.appendChild(el);
   });
+  BRANCHES.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'branch';
+    el.style.left   = b.x+'%';
+    el.style.top    = b.y+'%';
+    el.style.width  = b.w+'px';
+    el.style.height = b.h+'px';
+    el.style.setProperty('--rot', b.rot+'deg');
+    el.style.transform = `rotate(${b.rot}deg)`;
+    wg.appendChild(el);
+  });
+
+  updateMarblePos();
+  document.getElementById('winOverlay').classList.remove('show');
+
+  if (animId) cancelAnimationFrame(animId);
+  loop();
 }
 
-function onAttendChange() {
-  const val = getRadioVal('attending');
-  document.getElementById('attendItem').classList.toggle('checked', val === '參加');
-  document.getElementById('notAttendItem').classList.toggle('checked', false);
-  document.getElementById('notAttendItem').classList.toggle('warn', val === '不參加');
-  document.getElementById('noteWrap').classList.toggle('hidden', val !== '不參加');
-}
+// ─── PHYSICS LOOP ───
+function loop() {
+  // Apply tilt gravity
+  marble.vx += tilt.x * GRAVITY_SCALE;
+  marble.vy += tilt.y * GRAVITY_SCALE;
 
-const STEPS = ['step1','stepFuzzy','step2','step3','step4','stepDup','stepClosed'];
-function show(id) {
-  STEPS.forEach(s => document.getElementById(s).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
+  // Friction
+  marble.vx *= FRICTION;
+  marble.vy *= FRICTION;
 
-function setProgress(active) {
-  for (let i = 1; i <= 4; i++) {
-    const c = document.getElementById('pc' + i);
-    const l = document.getElementById('pl' + i);
-    c.classList.remove('active','done');
-    l.classList.remove('active');
-    if      (i < active)  { c.classList.add('done');   c.innerHTML = '✓'; }
-    else if (i === active) { c.classList.add('active'); c.innerHTML = i; l.classList.add('active'); }
-    else                  { c.innerHTML = i; }
-    if (i < 4) document.getElementById('pln' + i).classList.toggle('done', i < active);
-  }
-}
+  // Clamp speed
+  const speed = Math.sqrt(marble.vx**2 + marble.vy**2);
+  if (speed > 12) { marble.vx = marble.vx/speed*12; marble.vy = marble.vy/speed*12; }
 
-function backToStep1() {
-  member = {};
-  document.getElementById('queryInput').value = '';
-  document.getElementById('err1').innerText = '';
-  document.getElementById('err3').innerText = '';
-  show('step1'); setProgress(1);
-}
+  // Move
+  marble.x += marble.vx;
+  marble.y += marble.vy;
 
-async function doLookup() {
-  const q = document.getElementById('queryInput').value.trim();
-  document.getElementById('err1').innerText = '';
-  if (!q) { document.getElementById('err1').innerText = '請輸入姓名或學員編號'; return; }
+  // Wall bounce
+  if (marble.x < MARBLE_R)        { marble.x = MARBLE_R;        marble.vx = Math.abs(marble.vx)*0.5; }
+  if (marble.x > BOARD_W-MARBLE_R){ marble.x = BOARD_W-MARBLE_R; marble.vx = -Math.abs(marble.vx)*0.5; }
+  if (marble.y < MARBLE_R)        { marble.y = MARBLE_R;        marble.vy = Math.abs(marble.vy)*0.5; }
+  if (marble.y > BOARD_H-MARBLE_R){ marble.y = BOARD_H-MARBLE_R; marble.vy = -Math.abs(marble.vy)*0.5; }
 
-  const looksLikeId = /^[A-Za-z0-9]+$/.test(q) && q.length >= 9;
-  if (looksLikeId) {
-    const isZen = /^\d{9}$/.test(q);
-    const isDC  = /^\d{3}(DSA|DSB|5MA|5MB)\d{4}$/i.test(q);
-    if (!isZen && !isDC) {
-      document.getElementById('err1').innerText = '學員編號格式錯誤';
-      return;
+  // Check holes
+  holes.forEach(h => {
+    if (h.scored) return;
+    const dx = marble.x - h.x, dy = marble.y - h.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < CAPTURE_DIST) {
+      h.scored = true;
+      h.el.classList.add('scored');
+      scored++;
+      moves++;
+      updateHUD();
+      spawnScorePopup(h.x, h.y);
+      // Snap marble to hole center briefly then respawn
+      marble.x = h.x; marble.y = h.y;
+      marble.vx = 0; marble.vy = 0;
+      setTimeout(() => respawnMarble(), 600);
+      if (scored >= 14) { setTimeout(showWin, 800); }
     }
-  }
+  });
 
-  setLoading('spin1', 'btnLookup', true);
-  try {
-    const r = await gas('lookupMember', q);
-    handleLookupResult(r);
-  } catch (e) {
-    document.getElementById('err1').innerText = '查詢失敗，請稍後再試';
-  } finally {
-    setLoading('spin1', 'btnLookup', false);
-  }
+  updateMarblePos();
+
+  // Trail
+  if (speed > 2) spawnTrail();
+
+  animId = requestAnimationFrame(loop);
 }
 
-function handleLookupResult(r) {
-  if (!r) { document.getElementById('err1').innerText = '查詢回傳空值'; return; }
-  if (r.systemClosed) { show('stepClosed'); setProgress(1); return; }
-  if (r.config) applyConfig(r.config);
-  if (r.invalidId) { document.getElementById('err1').innerText = '學員編號格式錯誤，請確認後重試'; return; }
-  if (!r.found && r.fuzzy) { renderCandidates(r.candidates); show('stepFuzzy'); setProgress(1); return; }
-  if (!r.found) { document.getElementById('err1').innerText = '查無此姓名或學員編號，請確認後重試'; return; }
-  if (r.duplicate) { showDuplicate(r); return; }
-  fillStep2(r);
+function respawnMarble() {
+  marble.x = BOARD_W/2 + (Math.random()-0.5)*80;
+  marble.y = BOARD_H/2 + (Math.random()-0.5)*60;
+  marble.vx = (Math.random()-0.5)*2;
+  marble.vy = (Math.random()-0.5)*2;
 }
 
-function renderCandidates(candidates) {
-  const wrap = document.getElementById('candidateList');
-  wrap.innerHTML = '';
-  (candidates || []).forEach(c => {
-    const div = document.createElement('div');
-    div.className = 'candidate';
-    div.innerHTML = `<div class="candidate-name">${c.name}　<span style="color:#888;font-size:13px">${c.dharmaName||''}</span></div><div class="candidate-meta">班組別：${c.group}　學員編號：${c.studentId}</div>`;
-    div.onclick = () => selectCandidate(c);
-    wrap.appendChild(div);
+function updateMarblePos() {
+  const el = document.getElementById('marble');
+  el.style.left = marble.x + 'px';
+  el.style.top  = marble.y + 'px';
+}
+
+// ─── HUD ───
+function updateHUD() {
+  document.getElementById('progressBadge').textContent = scored + ' / 14';
+  document.getElementById('statScored').textContent = scored;
+  document.getElementById('statRemain').textContent = 14 - scored;
+  document.getElementById('statMoves').textContent = moves;
+}
+
+// ─── TRAIL ───
+let trailThrottle = 0;
+function spawnTrail() {
+  const now = Date.now();
+  if (now - trailThrottle < 40) return;
+  trailThrottle = now;
+  const board = document.getElementById('board');
+  const t = document.createElement('div');
+  t.className = 'marble-trail';
+  const sz = 8 + Math.random()*6;
+  t.style.width = sz+'px'; t.style.height = sz+'px';
+  t.style.left = marble.x+'px'; t.style.top = marble.y+'px';
+  board.appendChild(t);
+  setTimeout(() => t.remove(), 500);
+}
+
+// ─── SCORE POPUP ───
+function spawnScorePopup(x, y) {
+  const board = document.getElementById('board');
+  const p = document.createElement('div');
+  p.className = 'score-popup';
+  p.textContent = '✓ 入洞！';
+  p.style.left = x+'px'; p.style.top = y+'px';
+  board.appendChild(p);
+  setTimeout(() => p.remove(), 1200);
+}
+
+// ─── WIN ───
+function showWin() {
+  cancelAnimationFrame(animId);
+  document.getElementById('winOverlay').classList.add('show');
+}
+function resetGame() { initGame(); }
+
+// ─── BOARD TILT (mouse/touch) ───
+const boardPerspective = document.getElementById('boardPerspective');
+const boardTilt = document.getElementById('boardTilt');
+const board = document.getElementById('board');
+
+let pointerInside = false;
+let lastTiltX = 0, lastTiltY = 0;
+
+board.addEventListener('mousemove', e => {
+  const rect = board.getBoundingClientRect();
+  const cx = rect.left + BOARD_W/2, cy = rect.top + BOARD_H/2;
+  const dx = (e.clientX - cx) / (BOARD_W/2);
+  const dy = (e.clientY - cy) / (BOARD_H/2);
+  // Perspective tilt
+  lastTiltX = dy * 10; lastTiltY = -dx * 10;
+  boardTilt.style.transform = `rotateX(${lastTiltX}deg) rotateY(${lastTiltY}deg)`;
+  // Physics gravity
+  tilt.x = dx * 1.2;
+  tilt.y = dy * 1.2;
+  moves++;
+  updateHUD();
+});
+
+board.addEventListener('mouseleave', () => {
+  // Ease back to flat
+  boardTilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  tilt.x = 0; tilt.y = 0;
+});
+
+// Touch support
+let touchStart = null;
+board.addEventListener('touchstart', e => {
+  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  e.preventDefault();
+}, {passive:false});
+
+board.addEventListener('touchmove', e => {
+  if (!touchStart) return;
+  const rect = board.getBoundingClientRect();
+  const cx = rect.left + BOARD_W/2, cy = rect.top + BOARD_H/2;
+  const dx = (e.touches[0].clientX - cx) / (BOARD_W/2);
+  const dy = (e.touches[0].clientY - cy) / (BOARD_H/2);
+  lastTiltX = dy * 12; lastTiltY = -dx * 12;
+  boardTilt.style.transform = `rotateX(${lastTiltX}deg) rotateY(${lastTiltY}deg)`;
+  tilt.x = dx * 1.5;
+  tilt.y = dy * 1.5;
+  e.preventDefault();
+}, {passive:false});
+
+board.addEventListener('touchend', () => {
+  boardTilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  tilt.x *= 0.3; tilt.y *= 0.3;
+});
+
+// Gyroscope (mobile)
+let gyroEnabled = false;
+
+function startGyro() {
+  window.addEventListener('deviceorientation', e => {
+    if (e.gamma === null) return;
+    gyroEnabled = true;
+    const gx = Math.max(-4, Math.min(4, e.gamma / 9));   // left/right
+    const gy = Math.max(-4, Math.min(4, (e.beta - 40) / 9)); // fwd/back
+    tilt.x = gx;
+    tilt.y = gy;
+    boardTilt.style.transform =
+      `rotateX(${gy * 3}deg) rotateY(${-gx * 3}deg)`;
+    // Hide gyro button once working
+    const btn = document.getElementById('gyroBtn');
+    if (btn) btn.style.display = 'none';
   });
 }
 
-async function selectCandidate(c) {
-  const wrap = document.getElementById('candidateList');
-  wrap.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>確認中，請稍候⋯</div>';
-  try {
-    const r = await gas('confirmFuzzyMember', c);
-    if (r.duplicate) { showDuplicate(r); return; }
-    fillStep2(r);
-  } catch (e) {
-    document.getElementById('err1').innerText = '確認失敗，請重試';
-    show('step1'); setProgress(1);
-  }
-}
-
-function fillStep2(r) {
-  member = r;
-  document.getElementById('s_id').innerText     = r.studentId;
-  document.getElementById('s_name').innerText   = r.name;
-  document.getElementById('s_dharma').innerText = r.dharmaName || '—';
-  document.getElementById('s_group').innerText  = r.group;
-  show('step2'); setProgress(2);
-}
-
-function goStep3() {
-  document.getElementById('s3_name').innerText   = member.name || '';
-  document.getElementById('s3_dharma').innerText = member.dharmaName || '—';
-  document.getElementById('s3_group').innerText  = member.group || '';
-
-  if (member.config && member.config.sessions) renderSessionOptions(member.config.sessions);
-
-  document.querySelectorAll('input[name=sessionIndex]').forEach(r => r.checked = false);
-  document.querySelectorAll('input[name=attending]').forEach(r => r.checked = false);
-  document.getElementById('attendItem').classList.remove('checked');
-  document.getElementById('notAttendItem').classList.remove('checked');
-  document.getElementById('notAttendItem').classList.remove('warn');
-  document.getElementById('noteWrap').classList.add('hidden');
-  document.getElementById('note').value = '';
-  document.getElementById('err3').innerText = '';
-  document.querySelectorAll('#sessionGroup .radio-item').forEach(el => el.classList.remove('checked'));
-
-  if (member.override && member.existing) {
-    setRadio('sessionIndex', String(member.existing.sessionIndex));
-    onSessionChange();
-    setRadio('attending', member.existing.status);
-    onAttendChange();
-    document.getElementById('note').value = member.existing.note || '';
-  }
-
-  show('step3'); setProgress(3);
-}
-
-function setRadio(name, val) {
-  const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
-  if (el) el.checked = true;
-}
-function getRadioVal(name) {
-  const el = document.querySelector(`input[name="${name}"]:checked`);
-  return el ? el.value : '';
-}
-
-function showDuplicate(r) {
-  member = r;
-  document.getElementById('dup_name').innerText   = r.name || '';
-  document.getElementById('dup_dharma').innerText = r.dharmaName || '—';
-  document.getElementById('dup_group').innerText  = r.group || '';
-
-  const ex = r.existing || {};
-  const sessions = (r.config && r.config.sessions) || [];
-  document.getElementById('dup_session').innerText = sessions[ex.sessionIndex-1] || ('場次' + ex.sessionIndex);
-  document.getElementById('dup_status').innerText  = ex.status || '';
-  document.getElementById('dup_time').innerText    = ex.time || '';
-
-  const noteRow = document.getElementById('dup_note_row');
-  if (ex.status === '不參加' && ex.note) {
-    noteRow.classList.remove('hidden');
-    document.getElementById('dup_note').innerText = ex.note;
-  } else {
-    noteRow.classList.add('hidden');
-  }
-
-  const pastDeadline = r.config && r.config.pastDeadline;
-  document.getElementById('dupActions').classList.toggle('hidden', !!pastDeadline);
-  document.getElementById('dupClosedNotice').classList.toggle('hidden', !pastDeadline);
-
-  show('stepDup'); setProgress(2);
-}
-
-function reRegister() {
-  member.override = true;
-  goStep3();
-}
-
-async function doSubmit() {
-  document.getElementById('err3').innerText = '';
-
-  const sessionIndex = getRadioVal('sessionIndex');
-  const attending     = getRadioVal('attending');
-  const note           = document.getElementById('note').value.trim();
-
-  if (!sessionIndex) { showErr('err3', '請選擇場次'); return; }
-  if (!attending)     { showErr('err3', '請選擇出席狀態'); return; }
-  if (attending === '不參加' && !note) { showErr('err3', '請填寫無法參加的原因'); return; }
-
-  setLoading('spin3', 'btnSubmit', true);
-
-  const data = {
-    studentId    : member.studentId  || '',
-    name         : member.name       || '',
-    dharmaName   : member.dharmaName || '',
-    group        : member.group      || '',
-    gender       : member.gender     || '',
-    sessionIndex : sessionIndex,
-    attending    : attending,
-    note         : attending === '不參加' ? note : ''
-  };
-
-  try {
-    const r = await gas('submitRegistration', data);
-    if (r.success) {
-      const sessions = (member.config && member.config.sessions) || [];
-      const sessionName = sessions[sessionIndex-1] || ('場次' + sessionIndex);
-      document.getElementById('successMsg').innerText =
-        `${member.name}　${member.dharmaName||''}\n場次：${sessionName}\n狀態：${attending}` +
-        (attending === '不參加' ? `\n原因：${note}` : '');
-      show('step4'); setProgress(4);
-    } else {
-      const reasonMap = {
-        closed: '報名系統未開放',
-        deadline_passed: '報名已截止，無法修改',
-        missing_data: '資料不完整',
-        invalid_session: '場次選擇有誤',
-        invalid_status: '出席狀態有誤',
-        missing_note: '請填寫無法參加的原因'
-      };
-      showErr('err3', reasonMap[r.reason] || ('送出失敗：' + (r.reason||'unknown')));
-    }
-  } catch (e) {
-    showErr('err3', '送出失敗，請稍後再試');
-  } finally {
-    setLoading('spin3', 'btnSubmit', false);
-  }
-}
-
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  if (el) el.innerText = msg || '';
-}
-function setLoading(spinId, btnId, on) {
-  document.getElementById(spinId).classList.toggle('hidden', !on);
-  if (btnId) document.getElementById(btnId).disabled = on;
-}
-function gas(funcName, ...args) {
-  return new Promise((resolve, reject) => {
-    google.script.run
-      .withSuccessHandler(resolve)
-      .withFailureHandler(reject)
-      [funcName](...args);
+// iOS 13+ requires explicit permission
+if (typeof DeviceOrientationEvent !== 'undefined' &&
+    typeof DeviceOrientationEvent.requestPermission === 'function') {
+  // Show a button — iOS won't grant permission without a user gesture
+  const btn = document.createElement('button');
+  btn.id = 'gyroBtn';
+  btn.textContent = '📱 啟用陀螺儀';
+  Object.assign(btn.style, {
+    position:'fixed', bottom:'90px', left:'50%',
+    transform:'translateX(-50%)',
+    background:'linear-gradient(135deg,#e8c547,#b8922a)',
+    border:'none', borderRadius:'24px',
+    padding:'10px 24px',
+    fontFamily:"'Nunito',sans-serif",
+    fontSize:'15px', fontWeight:'800',
+    color:'#2d1a00', cursor:'pointer',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.4)',
+    zIndex:'200'
   });
+  btn.addEventListener('click', () => {
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') { startGyro(); btn.remove(); }
+        else { btn.textContent = '❌ 權限被拒'; }
+      })
+      .catch(() => { btn.textContent = '❌ 無法取得權限'; });
+  });
+  document.body.appendChild(btn);
+} else if (window.DeviceOrientationEvent) {
+  // Android / non-iOS — no permission needed
+  startGyro();
 }
 
-(async function initConfig() {
-  try {
-    const cfg = await gas('getConfig');
-    applyConfig(cfg);
-    if (cfg.eventName) document.title = cfg.eventName;
-  } catch (e) { /* 靜默失敗，顯示預設值 */ }
+// ─── AMBIENT PARTICLES ───
+(function spawnParticles() {
+  const layer = document.getElementById('particles');
+  for (let i=0; i<18; i++) {
+    const d = document.createElement('div');
+    d.className = 'dust';
+    const sz = 2 + Math.random()*4;
+    d.style.width = sz+'px'; d.style.height = sz+'px';
+    d.style.left  = Math.random()*100+'vw';
+    d.style.animationDuration = (8+Math.random()*12)+'s';
+    d.style.animationDelay   = (-Math.random()*15)+'s';
+    layer.appendChild(d);
+  }
 })();
 
-function resetAll() {
-  member = {};
-  document.getElementById('queryInput').value = '';
-  document.getElementById('err1').innerText = '';
-  document.getElementById('err3').innerText = '';
-  show('step1'); setProgress(1);
-}
+// ─── START ───
+initGame();
 </script>
 </body>
 </html>

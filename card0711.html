@@ -280,6 +280,19 @@
   }
   #hint.hide { opacity: 0 !important; animation: none; }
 
+  /* ── 音效測試按鈕（除錯用） ── */
+  #sound-test {
+    position: fixed; top: 14px; right: 14px;
+    z-index: 30;
+    padding: 6px 14px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,210,140,0.35);
+    color: rgba(255,225,180,0.75);
+    border-radius: 20px;
+    font-size: 12px; font-family: 'Noto Serif TC', serif;
+    letter-spacing: 0.05em;
+  }
+
   /* ── 再來一次 ── */
   #replay {
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -351,6 +364,7 @@
 
 <p id="hint">點擊信封以開啟</p>
 <button id="replay" onclick="resetAll()">↺ 再來一次</button>
+<button id="sound-test" onclick="testSound()">🔔 測試音效</button>
 
 <script>
 // ── 星星 ──
@@ -516,23 +530,48 @@ requestAnimationFrame(mainLoop);
 
 // ── 音效 ──
 let audioCtx=null;
+let audioReady=false;
 function getAC(){
   if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==='suspended') audioCtx.resume();
   return audioCtx;
 }
-function unlockAudio(){
+async function ensureAudioRunning(){
   const ac=getAC();
-  if(ac.state==='suspended'){
-    ac.resume();
+  if(ac.state!=='running'){
+    try{ await ac.resume(); }catch(e){}
   }
-  // iOS 需要實際播放一個極短的無聲緩衝區才能真正解鎖音訊輸出
-  const buf=ac.createBuffer(1,1,22050);
-  const src=ac.createBufferSource();
-  src.buffer=buf; src.connect(ac.destination); src.start(0);
+  if(!audioReady){
+    // iOS 需要實際播放過一次緩衝區，音訊硬體才會真正啟動
+    try{
+      const buf=ac.createBuffer(1,1,22050);
+      const src=ac.createBufferSource();
+      src.buffer=buf; src.connect(ac.destination); src.start(0);
+    }catch(e){}
+    audioReady=true;
+  }
+  return ac;
 }
-document.body.addEventListener('touchstart', unlockAudio, { once:true, passive:true });
-document.body.addEventListener('pointerdown', unlockAudio, { once:true });
+async function primeAudio(){
+  await ensureAudioRunning();
+  startAmbient();
+}
+document.body.addEventListener('touchstart', primeAudio, { once:true, passive:true });
+document.body.addEventListener('pointerdown', primeAudio, { once:true });
+
+async function testSound(){
+  const btn=document.getElementById('sound-test');
+  const ac=await ensureAudioRunning();
+  const now=ac.currentTime;
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.value=880;
+  const g=ac.createGain();
+  g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(0.4,now+0.02);
+  g.gain.exponentialRampToValueAtTime(0.001,now+0.5);
+  o.connect(g); g.connect(ac.destination);
+  o.start(now); o.stop(now+0.5);
+  btn.textContent = ac.state==='running' ? '✅ 已播放（狀態：running）' : ('⚠️ 狀態：'+ac.state);
+  setTimeout(()=>{ btn.textContent='🔔 測試音效'; }, 2500);
+}
 
 function playRustle(){
   const ac=getAC(); const dur=1.65;
@@ -621,7 +660,6 @@ function stopAmbient(fadeTime){
   ambientNodes.forEach(n=>{ if(n.stop){ try{ n.stop(stopAt); }catch(e){} } });
   setTimeout(()=>{ ambientStarted=false; ambientNodes=[]; ambientMaster=null; }, (fadeTime+0.3)*1000);
 }
-document.body.addEventListener('pointerdown', startAmbient, { once:true });
 
 // ── 結尾留白：柔和延音 ──
 function playSustain(){
@@ -641,10 +679,10 @@ function playSustain(){
 let triggered=false;
 function buzz(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
-function triggerOpen(){
+async function triggerOpen(){
   if(triggered) return; triggered=true;
   const scene=document.getElementById('scene');
-  unlockAudio();
+  await ensureAudioRunning();
   startAmbient();
   playRustle();
   buzz(12);

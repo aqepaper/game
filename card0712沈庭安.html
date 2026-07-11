@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>信封動畫</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Noto Serif TC', serif;
+    background: #08061e;
+  }
+
+  /* ── 背景層 ── */
+  #sky {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(180deg,
+      #08061e 0%, #110d35 20%, #1e1050 40%,
+      #3d1a70 62%, #7b3fa0 78%, #c2607a 90%, #f0925a 100%);
+  }
+  #dawn-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(180deg,
+      #1a1438 0%, #3a2560 18%, #6b3f7a 38%,
+      #c06a7a 58%, #e89468 76%, #f7c37e 90%, #ffe3ab 100%);
+    opacity: 0;
+    transition: opacity 13.5s ease;
+    pointer-events: none;
+  }
+  #dawn-overlay.active { opacity: 1; }
+  #star-layer    { position: fixed; inset: 0; z-index: 1; pointer-events: none; transition: opacity 13.5s ease; }
+  #star-layer.dim { opacity: 0.18; }
+  #cloud-layer   { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+  .cloud-svg     { position: absolute; opacity: 0.16; animation: driftCloud linear infinite; }
+  @keyframes driftCloud {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-120vw); }
+  }
+  #particle-layer { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+  #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+
+  /* 爆炸光暈 */
+  #burst-bg {
+    position: fixed; inset: 0; z-index: 4;
+    background: transparent; pointer-events: none;
+    transition: background 0.5s ease;
+  }
+  #burst-bg.active {
+    background: radial-gradient(ellipse 80% 60% at 50% 42%,
+      rgba(255,200,50,0.22) 0%, rgba(255,100,50,0.08) 45%, transparent 70%);
+  }
+
+  /* ── 主版面：垂直排列 ── */
+  #stage {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding-bottom: 120px;
+    gap: 0;
+  }
+
+  /* 上方裝飾標題 */
+  #top-title {
+    text-align: center;
+    margin-bottom: 40px;
+    opacity: 1;
+    transition: opacity 0.5s;
+  }
+  #top-title h1 {
+    font-size: 1.1rem; font-weight: 400;
+    color: rgba(255,240,180,0.6); letter-spacing: 0.3em;
+    text-shadow: 0 0 20px rgba(245,200,66,0.3);
+  }
+  #top-title p {
+    font-size: 0.72rem; color: rgba(255,210,140,0.35);
+    margin-top: 5px; letter-spacing: 0.15em;
+  }
+
+  /* ── 信封場景 ── */
+  .scene {
+    position: relative;
+    width: 280px; height: 186px;
+    top: 20px;
+    perspective: 900px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  @keyframes wiggle {
+    0%,100%{ transform: rotate(0deg) scale(1); }
+    20%    { transform: rotate(-4deg) scale(1.04); }
+    40%    { transform: rotate(4deg) scale(1.04); }
+    60%    { transform: rotate(-3deg) scale(1.02); }
+    80%    { transform: rotate(3deg) scale(1.02); }
+  }
+  .scene.wiggle { animation: wiggle 1.65s ease; }
+
+  .flap { position: absolute; transform-style: preserve-3d; overflow: hidden; }
+
+  /* 上片 */
+  .flap-top {
+    top: 0; left: 0; right: 0; height: 50%;
+    transform-origin: top center;
+    transition: transform 2.1s cubic-bezier(0.4,0,0.2,1) 0s;
+    z-index: 4;
+    background: linear-gradient(160deg, #e8dcb8 0%, #d4c890 100%);
+    border-radius: 4px 4px 0 0;
+  }
+  .flap-top .face {
+    position: absolute; inset: 0;
+    background: transparent; border-radius: 4px 4px 0 0; overflow: visible;
+  }
+  .flap-top .face::after {
+    content: ''; position: absolute;
+    top: 0; left: -4px; right: -4px; height: 100%;
+    background: linear-gradient(175deg, #e8dcb8 0%, #c8bc8c 100%);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+  }
+
+  /* 下片 */
+  .flap-bot {
+    bottom: 0; left: 0; right: 0; height: 50%;
+    transform-origin: bottom center;
+    transition: transform 2.1s cubic-bezier(0.4,0,0.2,1) 0.24s;
+    z-index: 4;
+  }
+  .flap-bot .face {
+    position: absolute; inset: 0;
+    background: linear-gradient(5deg, #e0d4b0 0%, #cfc39c 100%);
+    border-radius: 0 0 8px 8px; overflow: hidden;
+  }
+  .flap-bot .face::after {
+    content: ''; position: absolute;
+    bottom: -10px; left: -10px; right: -10px; height: 200%;
+    background: linear-gradient(5deg, #d8cc9e 0%, #c8bc8c 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+
+  /* 左片 */
+  .flap-left {
+    top: 0; left: 0; bottom: 0; width: 50%;
+    transform-origin: left center;
+    transition: transform 2.1s cubic-bezier(0.4,0,0.2,1) 0.12s;
+    z-index: 3;
+  }
+  .flap-left .face {
+    position: absolute; inset: 0;
+    background: linear-gradient(100deg, #ddd4b0 0%, #ccc09a 100%); overflow: hidden;
+  }
+  .flap-left .face::after {
+    content: ''; position: absolute;
+    top: -10px; bottom: -10px; left: -10px; width: 200%;
+    background: linear-gradient(100deg, #d4c9a4 0%, #c8bc90 100%);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  /* 右片 */
+  .flap-right {
+    top: 0; right: 0; bottom: 0; width: 50%;
+    transform-origin: right center;
+    transition: transform 2.1s cubic-bezier(0.4,0,0.2,1) 0.12s;
+    z-index: 3;
+  }
+  .flap-right .face {
+    position: absolute; inset: 0;
+    background: linear-gradient(80deg, #ccc09a 0%, #ddd4b0 100%); overflow: hidden;
+  }
+  .flap-right .face::after {
+    content: ''; position: absolute;
+    top: -10px; bottom: -10px; right: -10px; width: 200%;
+    background: linear-gradient(80deg, #c8bc90 0%, #d4c9a4 100%);
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+  }
+
+  /* 封蠟 */
+  .wax {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 44px;
+    background: radial-gradient(circle at 35% 35%, #e74c3c, #8e1a10);
+    border-radius: 50%; z-index: 6;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85); font-size: 17px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.25);
+    transition: transform 0.75s ease, opacity 0.75s ease;
+  }
+
+  /* 光環 */
+  .halo {
+    position: absolute; inset: -20px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,210,60,0.35) 0%, transparent 70%);
+    opacity: 0; transform: scale(0.3);
+    transition: opacity 1.2s ease 2.1s, transform 1.8s ease 2.1s; z-index: 1;
+  }
+  /* 放射線 */
+  .rays {
+    position: absolute; inset: -70px;
+    opacity: 0; transition: opacity 0.9s ease 1.95s;
+    z-index: 1; pointer-events: none;
+  }
+
+  /* ── 爆炸狀態 ── */
+  .scene.exploded .flap-top   { transform: rotateX(-160deg); }
+  .scene.exploded .flap-bot   { transform: rotateX(160deg); }
+  .scene.exploded .flap-left  { transform: rotateY(-160deg); }
+  .scene.exploded .flap-right { transform: rotateY(160deg); }
+  .scene.exploded .wax        { transform: translate(-50%,-50%) scale(0) rotate(180deg); opacity: 0; }
+  .scene.exploded .halo       { opacity: 1; transform: scale(2); }
+  .scene.exploded .rays       { opacity: 1; }
+
+  /* ── 信紙區塊（從信封中升起） ── */
+  #name-block {
+    margin-top: 48px;
+    z-index: 20; position: relative;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.55) translateY(-395px) rotate(-2deg);
+    filter: blur(2px);
+    transition: opacity 3s ease 0s,
+                transform 3.45s cubic-bezier(0.19,1,0.22,1) 0s,
+                filter 2.7s ease 0s;
+    pointer-events: none;
+  }
+  #name-block.show {
+    opacity: 1; transform: scale(1) translateY(-215px) rotate(0deg);
+    filter: blur(0px);
+  }
+  #name-block .letter-paper {
+    display: inline-block;
+    max-width: 320px;
+    padding: 36px 55px 37px;
+    border-radius: 5px;
+    background:
+      radial-gradient(circle at 18% 25%, rgba(255,255,255,0.55), transparent 55%),
+      radial-gradient(circle at 82% 75%, rgba(190,150,90,0.18), transparent 55%),
+      linear-gradient(155deg, #f8f1de 0%, #ecdfc0 100%);
+    box-shadow:
+      0 20px 50px rgba(0,0,0,0.4),
+      inset 0 0 0 1px rgba(180,150,90,0.28),
+      inset 0 2px 6px rgba(255,255,255,0.45);
+    position: relative;
+  }
+  #name-block .letter-paper::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 5px;
+    background-image: repeating-linear-gradient(0deg, rgba(120,95,50,0.035) 0px, transparent 1px, transparent 3px);
+    pointer-events: none;
+  }
+  #name-block .name-text {
+    position: relative;
+    font-size: 52px; font-weight: 900;
+    color: #6b3f1d; letter-spacing: 0.12em;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,0.5),
+      0 0 20px rgba(220,160,60,0.3);
+    line-height: 1;
+  }
+  #name-block .name-sub {
+    position: relative;
+    margin-top: 16px;
+    font-size: 0.8rem; font-weight: 400;
+    color: rgba(90,65,35,0.78); letter-spacing: 0.1em; line-height: 1.9;
+  }
+
+  /* ── 提示 ── */
+  #hint {
+    position: fixed; bottom: 80px; left: 0; right: 0;
+    text-align: center;
+    color: rgba(255,230,160,0.5); font-size: 14px; letter-spacing: 0.2em;
+    z-index: 20; transition: opacity 0.4s;
+    text-shadow: 0 0 12px rgba(245,200,66,0.3);
+    animation: hintPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes hintPulse {
+    0%,100%{ opacity: 0.4; } 50%{ opacity: 0.9; }
+  }
+  #hint.hide { opacity: 0 !important; animation: none; }
+
+  /* ── 再來一次 ── */
+  #replay {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    padding: 9px 32px;
+    background: transparent;
+    border: 1px solid rgba(255,200,100,0.3);
+    color: rgba(255,220,160,0.6); border-radius: 24px;
+    font-size: 14px; font-family: 'Noto Serif TC', serif;
+    letter-spacing: 0.15em; cursor: pointer;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1.5s ease 4.5s, background 0.2s, color 0.2s;
+    z-index: 20;
+  }
+  #replay.show { opacity: 1; pointer-events: all; }
+  #replay:hover { background: rgba(255,200,80,0.12); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<div id="dawn-overlay"></div>
+<canvas id="star-layer"></canvas>
+<div id="cloud-layer"></div>
+<canvas id="particle-layer"></canvas>
+<div id="burst-bg"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<div id="stage">
+  <!-- 上方標題 -->
+  <div id="top-title">
+    <h1>✉ 有一封信給你</h1>
+    <p>有一封信，特別為你而來</p>
+  </div>
+
+  <!-- 信封 -->
+  <div class="scene" id="scene" onclick="triggerOpen()">
+    <svg class="rays" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(170,170)">
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round" transform="rotate(30)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round" transform="rotate(60)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round" transform="rotate(90)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round" transform="rotate(120)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.55)" stroke-width="3.5" stroke-linecap="round" transform="rotate(150)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(180)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(210)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(240)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(270)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(300)"/>
+        <line x1="0" y1="-150" x2="0" y2="-115" stroke="rgba(255,210,60,0.4)" stroke-width="2" stroke-linecap="round" transform="rotate(330)"/>
+      </g>
+    </svg>
+    <div class="halo"></div>
+    <div class="flap flap-top"><div class="face"></div></div>
+    <div class="flap flap-bot"><div class="face"></div></div>
+    <div class="flap flap-left"><div class="face"></div></div>
+    <div class="flap flap-right"><div class="face"></div></div>
+    <div class="wax">✦</div>
+  </div>
+
+  <!-- 信紙（從信封升起） -->
+  <div id="name-block">
+    <div class="letter-paper">
+      <div class="name-text">沈庭安</div>
+      <div class="name-sub">一切都會過去的，<br>有佛法就有辦法。</div>
+    </div>
+  </div>
+</div>
+
+<p id="hint">點擊信封以開啟</p>
+<button id="replay" onclick="resetAll()">↺ 再來一次</button>
+
+<script>
+// ── 星星 ──
+const starCanvas = document.getElementById('star-layer');
+const sCtx = starCanvas.getContext('2d');
+const stars = [];
+function resizeStar() {
+  starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight; buildStars();
+}
+function buildStars() {
+  stars.length = 0;
+  const n = Math.floor(window.innerWidth * window.innerHeight / 2600);
+  for (let i = 0; i < n; i++) stars.push({
+    x: Math.random() * starCanvas.width,
+    y: Math.random() * starCanvas.height * 0.78,
+    r: Math.random() * 1.4 + 0.3,
+    speed: Math.random() * 0.012 + 0.004,
+    phase: Math.random() * Math.PI * 2
+  });
+}
+function animateStars(t) {
+  sCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+  stars.forEach(s => {
+    const a = 0.35 + 0.65 * Math.abs(Math.sin(t * s.speed + s.phase));
+    sCtx.beginPath(); sCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    sCtx.fillStyle = `rgba(255,245,200,${a})`; sCtx.fill();
+  });
+}
+resizeStar(); window.addEventListener('resize', resizeStar);
+
+// ── 雲 ──
+const cloudLayer = document.getElementById('cloud-layer');
+function makeClouds() {
+  cloudLayer.innerHTML = '';
+  const defs = [
+    { top:'8%', w:200, dur:100, delay:0 },
+    { top:'20%', w:150, dur:140, delay:-45 },
+    { top:'33%', w:250, dur:115, delay:-22 },
+    { top:'15%', w:130, dur:160, delay:-75 },
+    { top:'48%', w:180, dur:105, delay:-58 },
+  ];
+  const ns = 'http://www.w3.org/2000/svg';
+  defs.forEach(c => {
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox','0 0 240 80');
+    svg.setAttribute('width', c.w); svg.setAttribute('height', c.w/3);
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d','M30 60 Q10 60 10 45 Q10 30 25 28 Q22 12 40 12 Q50 2 65 10 Q75 2 90 8 Q110 0 120 15 Q140 5 155 18 Q170 10 185 22 Q205 18 210 35 Q220 38 215 52 Q215 60 200 62 Z');
+    path.setAttribute('fill','white');
+    svg.appendChild(path);
+    svg.classList.add('cloud-svg');
+    svg.style.top = c.top;
+    svg.style.left = (window.innerWidth + 50) + 'px';
+    svg.style.animationDuration = c.dur + 's';
+    svg.style.animationDelay = c.delay + 's';
+    cloudLayer.appendChild(svg);
+  });
+}
+makeClouds(); window.addEventListener('resize', makeClouds);
+
+// ── 背景金色粒子 ──
+const pCanvas = document.getElementById('particle-layer');
+const pCtx = pCanvas.getContext('2d');
+const bgParticles = [];
+function resizeP() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
+resizeP(); window.addEventListener('resize', resizeP);
+function spawnBgP() {
+  for (let i = 0; i < 2; i++) bgParticles.push({
+    x: Math.random() * pCanvas.width, y: pCanvas.height + 10,
+    vx: (Math.random()-0.5)*0.5, vy: -(Math.random()*0.5+0.3),
+    r: Math.random()*2+0.5, a: Math.random()*0.5+0.2,
+    life: 1, decay: Math.random()*0.002+0.001,
+    color: Math.random()<0.55 ? '245,200,66' : '255,160,100'
+  });
+}
+function animateBgP() {
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  for (let i = bgParticles.length-1; i >= 0; i--) {
+    const p = bgParticles[i];
+    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+    if (p.life<=0){bgParticles.splice(i,1);continue;}
+    pCtx.beginPath(); pCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    pCtx.fillStyle=`rgba(${p.color},${p.a*p.life})`; pCtx.fill();
+  }
+}
+
+// ── Confetti ──
+const cCanvas = document.getElementById('confetti-canvas');
+const cCtx = cCanvas.getContext('2d');
+function resizeC() { cCanvas.width = window.innerWidth; cCanvas.height = window.innerHeight; }
+resizeC(); window.addEventListener('resize', resizeC);
+const COLORS=['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#FF8E53','#A8E6CF','#FFB347','#DDA0DD','#87CEEB','#FF69B4','#98FB98','#FFA07A','#00CED1','#FF1493','#7B68EE'];
+class Piece {
+  constructor(x,y,burst){
+    this.x=x;this.y=y;
+    const angle=Math.random()*Math.PI*2;
+    const speed=burst?(Math.random()*22+10):(Math.random()*4+1);
+    this.vx=Math.cos(angle)*speed;
+    this.vy=burst?(Math.sin(angle)*speed-Math.random()*8):(Math.random()*3+1);
+    this.gravity=burst?0.5:0.22; this.drag=0.97;
+    this.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+    this.w=Math.random()*12+4; this.h=Math.random()*6+3;
+    this.tilt=Math.random()*Math.PI*2; this.tiltV=(Math.random()-0.5)*0.28;
+    this.shape=Math.random()<0.55?'rect':'circle';
+    this.alpha=1; this.fade=Math.random()*0.01+0.005;
+  }
+  update(){ this.vy+=this.gravity; this.vx*=this.drag; this.vy*=this.drag; this.x+=this.vx; this.y+=this.vy; this.tilt+=this.tiltV; this.alpha-=this.fade; }
+  draw(c){ c.save(); c.globalAlpha=Math.max(0,this.alpha); c.fillStyle=this.color; c.translate(this.x,this.y); c.rotate(this.tilt); if(this.shape==='rect'){c.fillRect(-this.w/2,-this.h/2,this.w,this.h);}else{c.beginPath();c.ellipse(0,0,this.w/2,this.h/2,0,0,Math.PI*2);c.fill();} c.restore(); }
+}
+class StarDust {
+  constructor(tx,ty){
+    const ang=Math.random()*Math.PI*2;
+    const dist=Math.random()*150+50;
+    this.x=tx+Math.cos(ang)*dist;
+    this.y=ty+Math.sin(ang)*dist;
+    this.tx=tx+(Math.random()-0.5)*20;
+    this.ty=ty+(Math.random()-0.5)*20;
+    this.r=Math.random()*2+0.8;
+    this.alpha=0.001;
+    this.maxAlpha=Math.random()*0.5+0.5;
+    this.growing=true;
+    this.speed=Math.random()*0.035+0.025;
+    this.twinkle=Math.random()*Math.PI*2;
+    this.holdFrames=Math.floor(Math.random()*20)+10;
+  }
+  update(){
+    this.x+=(this.tx-this.x)*this.speed;
+    this.y+=(this.ty-this.y)*this.speed;
+    this.twinkle+=0.22;
+    if(this.growing){
+      this.alpha+=0.035;
+      if(this.alpha>=this.maxAlpha) this.growing=false;
+    } else if(this.holdFrames>0){
+      this.holdFrames--;
+    } else {
+      this.alpha-=0.012;
+    }
+  }
+  draw(c){
+    if(this.alpha<=0) return;
+    const glow=0.5+0.5*Math.sin(this.twinkle);
+    c.save();
+    c.globalAlpha=Math.max(0,this.alpha*glow);
+    c.fillStyle='rgba(255,225,150,1)';
+    c.beginPath(); c.arc(this.x,this.y,this.r,0,Math.PI*2); c.fill();
+    c.restore();
+  }
+}
+let pieces=[]; let rafId=null;
+function spawnBurst(x,y,n){ for(let i=0;i<n;i++) pieces.push(new Piece(x,y,true)); }
+function spawnRain(n){ for(let i=0;i<n;i++){const p=new Piece(Math.random()*cCanvas.width,-12,false);p.vx=(Math.random()-0.5)*3;p.vy=Math.random()*3+1.5;p.gravity=0.18;p.fade=0.004;pieces.push(p);} }
+function spawnStarDust(x,y,n){ for(let i=0;i<n;i++) pieces.push(new StarDust(x,y)); confettiLoop(); }
+function confettiLoop(){ cCtx.clearRect(0,0,cCanvas.width,cCanvas.height); pieces=pieces.filter(p=>p.alpha>0&&p.y<cCanvas.height+60); pieces.forEach(p=>{p.update();p.draw(cCtx);}); if(pieces.length>0) rafId=requestAnimationFrame(confettiLoop); else cCtx.clearRect(0,0,cCanvas.width,cCanvas.height); }
+
+// ── 主 loop ──
+let lastSpawn=0;
+function mainLoop(ts){
+  animateStars(ts/1000); animateBgP();
+  if(ts-lastSpawn>500){spawnBgP();lastSpawn=ts;}
+  requestAnimationFrame(mainLoop);
+}
+requestAnimationFrame(mainLoop);
+
+// ── 音效 ──
+let audioCtx=null;
+let audioReady=false;
+function getAC(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+async function ensureAudioRunning(){
+  const ac=getAC();
+  if(ac.state!=='running'){
+    try{ await ac.resume(); }catch(e){}
+  }
+  if(!audioReady){
+    // iOS 需要實際播放過一次緩衝區，音訊硬體才會真正啟動
+    try{
+      const buf=ac.createBuffer(1,1,22050);
+      const src=ac.createBufferSource();
+      src.buffer=buf; src.connect(ac.destination); src.start(0);
+    }catch(e){}
+    audioReady=true;
+  }
+  return ac;
+}
+async function primeAudio(){
+  await ensureAudioRunning();
+  startAmbient();
+}
+document.body.addEventListener('touchstart', primeAudio, { once:true, passive:true });
+document.body.addEventListener('pointerdown', primeAudio, { once:true });
+
+function playRustle(){
+  const ac=getAC(); const dur=1.65;
+  const buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.2);
+  const src=ac.createBufferSource(); src.buffer=buf;
+  const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=3200; bpf.Q.value=0.6;
+  const g=ac.createGain(); g.gain.setValueAtTime(0,ac.currentTime); g.gain.linearRampToValueAtTime(0.35,ac.currentTime+0.06); g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+  src.connect(bpf); bpf.connect(g); g.connect(ac.destination); src.start(); src.stop(ac.currentTime+dur);
+}
+
+function playPop(){
+  const ac=getAC(); const now=ac.currentTime;
+  [783.99,987.77,1174.66].forEach((freq,i)=>{
+    const t=now+i*0.08;
+    const osc=ac.createOscillator(); osc.type='sine'; osc.frequency.value=freq;
+    const osc2=ac.createOscillator(); osc2.type='triangle'; osc2.frequency.value=freq*3.1;
+    const bsz=Math.floor(ac.sampleRate*0.04); const nb=ac.createBuffer(1,bsz,ac.sampleRate);
+    const nd=nb.getChannelData(0); for(let j=0;j<bsz;j++) nd[j]=(Math.random()*2-1)*Math.pow(1-j/bsz,3);
+    const ns=ac.createBufferSource(); ns.buffer=nb;
+    const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=freq*1.5; bpf.Q.value=2;
+    const ng=ac.createGain(); ng.gain.setValueAtTime(0.18,t); ng.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+    ns.connect(bpf); bpf.connect(ng); ng.connect(ac.destination); ns.start(t); ns.stop(t+0.04);
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.28,t+0.005); g.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+    const g2=ac.createGain(); g2.gain.setValueAtTime(0,t); g2.gain.linearRampToValueAtTime(0.07,t+0.005); g2.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+    osc.connect(g); g.connect(ac.destination); osc2.connect(g2); g2.connect(ac.destination);
+    osc.start(t); osc.stop(t+0.9); osc2.start(t); osc2.stop(t+0.18);
+  });
+}
+
+function playChime(){
+  const ac=getAC(); const now=ac.currentTime;
+  [0,1.0].forEach(offset=>{
+    [523.25,659.25,783.99].forEach((freq,i)=>{
+      const t=now+offset+i*0.07;
+      const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq;
+      const o2=ac.createOscillator(); o2.type='sine'; o2.frequency.value=freq*2.76;
+      const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.22,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+1.8);
+      const g2=ac.createGain(); g2.gain.setValueAtTime(0,t); g2.gain.linearRampToValueAtTime(0.06,t+0.01); g2.gain.exponentialRampToValueAtTime(0.001,t+0.8);
+      o.connect(g); g.connect(ac.destination); o2.connect(g2); g2.connect(ac.destination);
+      o.start(t); o.stop(t+1.8); o2.start(t); o2.stop(t+0.8);
+    });
+  });
+}
+
+// ── 環境音樂（等待階段的空靈氛圍音） ──
+let ambientStarted=false;
+let ambientNodes=[];
+function startAmbient(){
+  if(ambientStarted) return; ambientStarted=true;
+  const ac=getAC();
+  const master=ac.createGain();
+  master.gain.setValueAtTime(0,ac.currentTime);
+  master.gain.linearRampToValueAtTime(0.05,ac.currentTime+3);
+  master.connect(ac.destination);
+  // 兩個微微飄移的柔和音層，模擬空靈鋼琴／水晶感
+  [261.63,392.0].forEach((freq,i)=>{
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq;
+    const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.05+i*0.02;
+    const lfoGain=ac.createGain(); lfoGain.gain.value=3;
+    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+    const g=ac.createGain(); g.gain.value=i===0?0.5:0.3;
+    o.connect(g); g.connect(master);
+    o.start(); lfo.start();
+    ambientNodes.push(o,lfo);
+  });
+  ambientNodes.push(master);
+  ambientMaster=master;
+}
+let ambientMaster=null;
+function fadeAmbient(target,dur){
+  if(!ambientMaster) return;
+  const ac=getAC();
+  ambientMaster.gain.cancelScheduledValues(ac.currentTime);
+  ambientMaster.gain.setValueAtTime(ambientMaster.gain.value,ac.currentTime);
+  ambientMaster.gain.linearRampToValueAtTime(target,ac.currentTime+dur);
+}
+function stopAmbient(fadeTime){
+  if(!ambientMaster) return;
+  const ac=getAC(); const now=ac.currentTime;
+  ambientMaster.gain.cancelScheduledValues(now);
+  ambientMaster.gain.setValueAtTime(ambientMaster.gain.value,now);
+  ambientMaster.gain.linearRampToValueAtTime(0,now+fadeTime);
+  const stopAt=now+fadeTime+0.1;
+  ambientNodes.forEach(n=>{ if(n.stop){ try{ n.stop(stopAt); }catch(e){} } });
+  setTimeout(()=>{ ambientStarted=false; ambientNodes=[]; ambientMaster=null; }, (fadeTime+0.3)*1000);
+}
+
+// ── 結尾留白：柔和延音 ──
+function playSustain(){
+  const ac=getAC(); const now=ac.currentTime;
+  [523.25,659.25,783.99,987.77].forEach((freq,i)=>{
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq;
+    const g=ac.createGain();
+    g.gain.setValueAtTime(0,now);
+    g.gain.linearRampToValueAtTime(0.035,now+1.2+i*0.15);
+    g.gain.linearRampToValueAtTime(0,now+6.5);
+    o.connect(g); g.connect(ac.destination);
+    o.start(now); o.stop(now+6.6);
+  });
+}
+
+// ── 信封互動 ──
+let triggered=false;
+function buzz(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
+
+async function triggerOpen(){
+  if(triggered) return; triggered=true;
+  const scene=document.getElementById('scene');
+  await ensureAudioRunning();
+  startAmbient();
+  playRustle();
+  buzz(12);
+  fadeAmbient(0.02,1.5);
+  scene.classList.add('wiggle');
+  setTimeout(()=>{
+    scene.classList.remove('wiggle');
+    scene.classList.add('exploded');
+    document.getElementById('burst-bg').classList.add('active');
+    playPop();
+    buzz([16,55,30]);
+    const rect=scene.getBoundingClientRect();
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    spawnBurst(cx,cy,220); confettiLoop();
+    setTimeout(()=>spawnBurst(cx,cy,160),540);
+    setTimeout(()=>spawnRain(120),1080);
+    setTimeout(()=>spawnRain(90),2160);
+
+    // 夜空轉晨光
+    document.getElementById('dawn-overlay').classList.add('active');
+    document.getElementById('star-layer').classList.add('dim');
+
+    // 信紙從信封升起
+    const nameBlock=document.getElementById('name-block');
+    setTimeout(()=>{ nameBlock.classList.add('show'); }, 780);
+
+    // 星塵在信紙上聚成祝福文字
+    setTimeout(()=>{
+      const nr=nameBlock.getBoundingClientRect();
+      spawnStarDust(nr.left+nr.width/2, nr.top+nr.height/2, 70);
+    }, 2100);
+
+    setTimeout(()=>{
+      playChime();
+      buzz(8);
+      fadeAmbient(0.035,6);
+    },2940);
+
+    // 結尾留下空間感，柔和延音之後緩緩淡出至靜默
+    setTimeout(()=>{
+      playSustain();
+      stopAmbient(10.5);
+    },5700);
+
+    document.getElementById('hint').classList.add('hide');
+    document.getElementById('replay').classList.add('show');
+  },1680);
+}
+
+function resetAll(){
+  triggered=false;
+  const scene=document.getElementById('scene');
+  scene.classList.remove('exploded','wiggle');
+  document.getElementById('name-block').classList.remove('show');
+  document.getElementById('hint').classList.remove('hide');
+  document.getElementById('replay').classList.remove('show');
+  document.getElementById('burst-bg').classList.remove('active');
+  document.getElementById('dawn-overlay').classList.remove('active');
+  document.getElementById('star-layer').classList.remove('dim');
+  if(ambientMaster) stopAmbient(0.4);
+  pieces=[]; if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+}
+</script>
+</body>
+</html>

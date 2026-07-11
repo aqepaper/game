@@ -516,7 +516,23 @@ requestAnimationFrame(mainLoop);
 
 // ── 音效 ──
 let audioCtx=null;
-function getAC(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function getAC(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+function unlockAudio(){
+  const ac=getAC();
+  if(ac.state==='suspended'){
+    ac.resume();
+  }
+  // iOS 需要實際播放一個極短的無聲緩衝區才能真正解鎖音訊輸出
+  const buf=ac.createBuffer(1,1,22050);
+  const src=ac.createBufferSource();
+  src.buffer=buf; src.connect(ac.destination); src.start(0);
+}
+document.body.addEventListener('touchstart', unlockAudio, { once:true, passive:true });
+document.body.addEventListener('pointerdown', unlockAudio, { once:true });
 
 function playRustle(){
   const ac=getAC(); const dur=1.65;
@@ -628,6 +644,7 @@ function buzz(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 function triggerOpen(){
   if(triggered) return; triggered=true;
   const scene=document.getElementById('scene');
+  unlockAudio();
   startAmbient();
   playRustle();
   buzz(12);
